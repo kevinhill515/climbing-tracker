@@ -1,4 +1,5 @@
-// Weeks run Saturday → Friday to match the athlete's training week.
+// Weeks run Monday → Sunday for this app (per user preference — differs
+// from calisthenics-tracker which uses Sat–Fri).
 
 const MS_PER_DAY = 86_400_000;
 
@@ -19,9 +20,10 @@ export function today() {
   return fmtDate(new Date());
 }
 
+// Most-recent Monday on or before d. JS getDay: Sun=0..Sat=6, Mon=1.
 export function weekStartOf(d) {
   const day = d.getDay();
-  const diff = (day - 6 + 7) % 7;
+  const diff = (day - 1 + 7) % 7; // days since the prior Monday
   const m = new Date(d);
   m.setHours(12, 0, 0, 0);
   m.setDate(m.getDate() - diff);

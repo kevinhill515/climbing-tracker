@@ -38,7 +38,12 @@ export default function FingerHealthCheckIn({ open, onClose, onProceed, sessionT
     <Sheet open={open} onClose={onClose} title="Finger health check-in" fullHeight={step === 'detail'}>
       <div className="px-5 py-4 space-y-4">
         <div className="text-sm text-zinc-300">
-          Before we start {sessionType || 'this session'}: any soreness in your fingers or pulleys today?
+          Before {sessionType || 'this session'}: any soreness or sharp pain in your <strong>fingers or finger pulleys</strong> today?
+        </div>
+        <div className="text-[11px] text-zinc-500 leading-relaxed bg-zinc-800/60 border border-zinc-700 rounded-lg px-3 py-2">
+          <strong className="text-zinc-300">Not what to log here:</strong> forearm DOMS or pump from yesterday's session, general tightness, minor muscle soreness. That's normal training response — climb through it.
+          <br /><br />
+          <strong className="text-zinc-300">What to log:</strong> tenderness on the fingers themselves, tweaked / pinchy feeling at a knuckle or in the base of a finger, or any sharp sensation when gripping. These are pulley warnings — the difference between a rest week and a torn A2.
         </div>
 
         {step === 'ask' ? (

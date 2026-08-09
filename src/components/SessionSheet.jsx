@@ -17,6 +17,9 @@ export default function SessionSheet({ open, onClose, sessionType, phase }) {
   const [exerciseOpen, setExerciseOpen] = useState(null);   // { id, prescription }
   const [antagOpen, setAntagOpen] = useState(false);
 
+  // ⚠ All hooks must run every render. Compute these unconditionally,
+  // THEN early-return. Otherwise the sheet crashes to a black screen the
+  // first time it's opened (hook count changes between renders).
   const todayStr = TODAY();
   const todayCounts = useMemo(() => {
     const m = {};
@@ -28,6 +31,10 @@ export default function SessionSheet({ open, onClose, sessionType, phase }) {
     return m;
   }, [data?.logs, todayStr, sessionType]);
 
+  const antagCountToday = useMemo(() => {
+    return ANTAGONIST_ITEMS.filter((it) => (todayCounts[it.ex] || 0) > 0).length;
+  }, [todayCounts]);
+
   if (!sessionType || !phase) return null;
   const session = phase.sessions[sessionType];
   if (!session) return null;
@@ -35,10 +42,6 @@ export default function SessionSheet({ open, onClose, sessionType, phase }) {
   const wid = weekId();
   const isDone = !!data?.weeks?.[wid]?.[sessionType];
   const meta = SESSION_META[sessionType];
-
-  const antagCountToday = useMemo(() => {
-    return ANTAGONIST_ITEMS.filter((it) => (todayCounts[it.ex] || 0) > 0).length;
-  }, [todayCounts]);
 
   return (
     <>

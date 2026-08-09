@@ -5,6 +5,7 @@ import PhaseJourney from './PhaseJourney.jsx';
 import ActivityHeatmap from './ActivityHeatmap.jsx';
 import FingerHealthCheckIn from './FingerHealthCheckIn.jsx';
 import DayDetailSheet from './DayDetailSheet.jsx';
+import ExtraSessionSheet from './ExtraSessionSheet.jsx';
 import { SESSION_TYPES, SESSION_META, phaseById, isDeloadWeek } from '../data/program.js';
 import { useStore } from '../store.jsx';
 import { weekId, weekNumber, fmtWeekRange, today } from '../utils/dates.js';
@@ -21,6 +22,7 @@ export default function WeekView() {
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [openSession, setOpenSession] = useState(null);
   const [pickedDate, setPickedDate] = useState(null);
+  const [extraOpen, setExtraOpen] = useState(false);
 
   if (!data) return null;
 
@@ -96,7 +98,7 @@ export default function WeekView() {
         </div>
       </div>
 
-      {/* Session cards */}
+      {/* Session cards — the 3 target protocol sessions per week */}
       <div className="space-y-2.5">
         {SESSION_TYPES.map((s) => {
           const done = !!myWk[s];
@@ -125,6 +127,13 @@ export default function WeekView() {
           );
         })}
       </div>
+
+      {/* Extra sessions this week + a button to log a bonus climb day */}
+      <ExtraSessionsRow
+        sessions={data.sessions || []}
+        wid={wid}
+        onLog={() => setExtraOpen(true)}
+      />
 
       {/* Activity heatmap — tap a cell to see that day's logs */}
       <div className="mt-4">
@@ -176,6 +185,32 @@ export default function WeekView() {
         date={pickedDate}
         onClose={() => setPickedDate(null)}
       />
+
+      <ExtraSessionSheet
+        open={extraOpen}
+        onClose={() => setExtraOpen(false)}
+      />
+    </div>
+  );
+}
+
+// Small counter + "+ Log extra session" button, sitting below the
+// 3 target session cards. Shows count of bonus sessions this week.
+function ExtraSessionsRow({ sessions, wid, onLog }) {
+  const extraThisWeek = sessions.filter((s) => s.isExtra && s.weekId === wid).length;
+  return (
+    <div className="mt-2.5">
+      {extraThisWeek > 0 && (
+        <div className="text-[11px] text-zinc-500 mb-1.5 text-center">
+          + <span className="text-orange-300 font-medium">{extraThisWeek}</span> extra session{extraThisWeek === 1 ? '' : 's'} logged this week
+        </div>
+      )}
+      <button
+        onClick={onLog}
+        className="w-full text-sm text-zinc-400 hover:text-zinc-100 border border-dashed border-zinc-700 hover:border-zinc-500 rounded-2xl py-3"
+      >
+        + Log extra session
+      </button>
     </div>
   );
 }

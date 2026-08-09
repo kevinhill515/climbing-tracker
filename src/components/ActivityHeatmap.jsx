@@ -8,14 +8,15 @@ import { fmtDate } from '../utils/dates.js';
 export default function ActivityHeatmap({ sessions, attempts, onPickDate }) {
   const today = new Date();
   const days = [];
+  // Most recent Monday (so columns line up with the Mon–Sun week)
   const todayDay = today.getDay();
-  const daysBackToSat = (todayDay + 1) % 7;
-  const startSat = new Date(today);
-  startSat.setDate(today.getDate() - daysBackToSat - 21);
+  const daysBackToMon = (todayDay - 1 + 7) % 7;
+  const startMon = new Date(today);
+  startMon.setDate(today.getDate() - daysBackToMon - 21);
 
   for (let i = 0; i < 28; i++) {
-    const d = new Date(startSat);
-    d.setDate(startSat.getDate() + i);
+    const d = new Date(startMon);
+    d.setDate(startMon.getDate() + i);
     const ds = fmtDate(d);
     const sessCount   = sessions.filter((s) => s.date === ds).length;
     const attCount    = attempts.filter((a) => a.date === ds).length;
@@ -38,8 +39,8 @@ export default function ActivityHeatmap({ sessions, attempts, onPickDate }) {
         </div>
       </div>
       <div className="grid grid-cols-7 gap-1.5">
-        <DayLabel d="S" /><DayLabel d="S" /><DayLabel d="M" /><DayLabel d="T" />
-        <DayLabel d="W" /><DayLabel d="T" /><DayLabel d="F" />
+        <DayLabel d="M" /><DayLabel d="T" /><DayLabel d="W" /><DayLabel d="T" />
+        <DayLabel d="F" /><DayLabel d="S" /><DayLabel d="S" />
         {days.map((d) => (
           <button
             key={d.date}
