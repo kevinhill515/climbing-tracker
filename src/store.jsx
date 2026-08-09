@@ -266,7 +266,7 @@ export function StoreProvider({ children }) {
   const advancePhase = useCallback(() => {
     patch((d) => ({
       ...d,
-      currentPhase: Math.min(5, d.currentPhase + 1),
+      currentPhase: Math.min(6, d.currentPhase + 1),
       phaseOverride: null,
     }));
   }, [patch]);

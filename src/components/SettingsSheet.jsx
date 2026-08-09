@@ -67,7 +67,7 @@ export default function SettingsSheet({ open, onClose }) {
 
         {/* Phase override */}
         <Section title="Manual phase" sub="Override the current phase (for testing or reset)">
-          <div className="grid grid-cols-5 gap-2">
+          <div className="grid grid-cols-6 gap-2">
             {PHASES.map((p) => (
               <button
                 key={p.id}

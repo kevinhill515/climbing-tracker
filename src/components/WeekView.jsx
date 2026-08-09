@@ -3,12 +3,11 @@ import ProgressRing from './ProgressRing.jsx';
 import SessionSheet from './SessionSheet.jsx';
 import PhaseJourney from './PhaseJourney.jsx';
 import ActivityHeatmap from './ActivityHeatmap.jsx';
-import FingerHealthCheckIn from './FingerHealthCheckIn.jsx';
 import DayDetailSheet from './DayDetailSheet.jsx';
 import ExtraSessionSheet from './ExtraSessionSheet.jsx';
 import { SESSION_TYPES, SESSION_META, phaseById, isDeloadWeek } from '../data/program.js';
 import { useStore } from '../store.jsx';
-import { weekId, weekNumber, fmtWeekRange, today } from '../utils/dates.js';
+import { weekId, weekNumber, fmtWeekRange } from '../utils/dates.js';
 
 const COLOR_MAP = {
   orange:  'bg-orange-500/15 text-orange-300 border-orange-500/30',
@@ -18,8 +17,6 @@ const COLOR_MAP = {
 
 export default function WeekView() {
   const { data } = useStore();
-  const [pendingSession, setPendingSession] = useState(null);   // session type user tapped
-  const [checkInOpen, setCheckInOpen] = useState(false);
   const [openSession, setOpenSession] = useState(null);
   const [pickedDate, setPickedDate] = useState(null);
   const [extraOpen, setExtraOpen] = useState(false);
@@ -33,27 +30,6 @@ export default function WeekView() {
 
   const myWk = data.weeks?.[wid] || {};
   const doneCount = SESSION_TYPES.filter((s) => myWk[s]).length;
-
-  // Prompt for health check-in the first time a session is tapped per day
-  const todayStr = today();
-  const alreadyCheckedInToday = (data.fingerHealth || []).some((h) => h.date === todayStr);
-
-  const startSession = (sessionType) => {
-    if (alreadyCheckedInToday) {
-      setOpenSession(sessionType);
-    } else {
-      setPendingSession(sessionType);
-      setCheckInOpen(true);
-    }
-  };
-
-  const onCheckInDone = () => {
-    setCheckInOpen(false);
-    if (pendingSession) {
-      setOpenSession(pendingSession);
-      setPendingSession(null);
-    }
-  };
 
   return (
     <div className="px-4 pt-3 pb-24 max-w-xl mx-auto fade-in">
@@ -106,8 +82,8 @@ export default function WeekView() {
           return (
             <button
               key={s}
-              onClick={() => startSession(s)}
-              className={`w-full text-left bg-zinc-900 border rounded-2xl p-4 flex items-center gap-3 transition active:scale-[0.99] ${
+              onClick={() => setOpenSession(s)}
+              className={`w-full text-left bg-zinc-900 border rounded-2xl p-4 flex items-start gap-3 transition active:scale-[0.99] ${
                 done ? 'border-orange-500/40' : 'border-zinc-800 hover:border-zinc-700'
               }`}
             >
@@ -115,10 +91,13 @@ export default function WeekView() {
                 {meta.icon}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-semibold text-zinc-100">{s}</div>
-                <div className="text-xs text-zinc-500 truncate">{meta.focus}</div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="font-semibold text-zinc-100">{s}</div>
+                  <div className="text-[10px] text-zinc-500 flex-shrink-0">{meta.time}</div>
+                </div>
+                <div className="text-xs text-zinc-400 mt-0.5 leading-snug">{meta.focus}</div>
               </div>
-              <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition ${
+              <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition flex-shrink-0 mt-0.5 ${
                 done ? 'bg-orange-500 border-orange-500 text-zinc-950' : 'border-zinc-700 text-transparent'
               }`}>
                 ✓
@@ -165,13 +144,6 @@ export default function WeekView() {
           ))}
         </ul>
       </div>
-
-      <FingerHealthCheckIn
-        open={checkInOpen}
-        onClose={() => { setCheckInOpen(false); setPendingSession(null); }}
-        onProceed={onCheckInDone}
-        sessionType={pendingSession}
-      />
 
       <SessionSheet
         open={!!openSession}
