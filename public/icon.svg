@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Rounded dark background -->
+  <rect width="64" height="64" rx="14" fill="#0b0d10"/>
+
+  <!-- Warm glow behind the figure — climbing accent -->
+  <circle cx="32" cy="32" r="26" fill="#f97316" fill-opacity="0.10"/>
+
+  <!-- Rock wall edge (right side) — vertical line with grip nubs -->
+  <line x1="56" y1="8" x2="56" y2="58"
+        stroke="#f97316" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="52" cy="15" r="2" fill="#f97316"/>
+  <circle cx="50" cy="27" r="2" fill="#f97316"/>
+  <circle cx="54" cy="38" r="2" fill="#f97316"/>
+  <circle cx="49" cy="48" r="2" fill="#f97316"/>
+
+  <!-- Climber silhouette — dynamic mid-move pose -->
+  <!-- Head -->
+  <circle cx="34" cy="14" r="3.5" fill="#f97316"/>
+  <!-- Torso -->
+  <path d="M 32 17 L 30 32 L 34 32 L 36 18 Z" fill="#f97316"/>
+  <!-- Upper arm reaching up-right toward hold -->
+  <path d="M 35 18 L 48 14 L 51 16 L 37 22 Z" fill="#f97316"/>
+  <!-- Lower arm holding grip -->
+  <line x1="30" y1="20" x2="21" y2="27"
+        stroke="#f97316" stroke-width="3" stroke-linecap="round"/>
+  <!-- Front leg — bent, foot on hold -->
+  <path d="M 31 32 L 24 42 L 27 44 L 33 34 Z" fill="#f97316"/>
+  <!-- Back leg — extended down/behind -->
+  <path d="M 34 32 L 39 48 L 42 48 L 37 32 Z" fill="#f97316"/>
+</svg>

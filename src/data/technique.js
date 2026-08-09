@@ -1,0 +1,32 @@
+// Technique concepts a V2-V3 climber should be internalizing. Shown as
+// prompts before efficiency training, and browseable from the library.
+
+export const TECHNIQUE_FOCUS = [
+  { id: 'silent-feet',
+    name: 'Silent feet',
+    cue: 'Place your feet without making a sound. Every scrape or shuffle is wasted energy and a tell that you\'re not looking where you\'re stepping.' },
+  { id: 'outside-edge',
+    name: 'Outside-edge / hip-in',
+    cue: 'Turn your inside hip toward the wall on side pulls. Turns a pumpy pull into a lock-off that comes from your legs.' },
+  { id: 'flag',
+    name: 'Flag',
+    cue: 'When one leg has nowhere to go, extend it out (behind or across) for counterbalance. Keeps you on the wall when you\'d otherwise barn-door off.' },
+  { id: 'drop-knee',
+    name: 'Drop knee',
+    cue: 'Rotate the inside knee downward on a side pull to bring your hip and shoulder to the wall — huge reach extension for zero extra strength.' },
+  { id: 'hip-turn',
+    name: 'Hip turn to reach',
+    cue: 'Before reaching, rotate your hip to face the pulling hand. Extends your reach 4–8 inches without effort.' },
+  { id: 'straight-arms',
+    name: 'Straight-arm hangs',
+    cue: 'When resting or reading the next move, hang on straight arms. Bent arms burn forearms; straight arms hang on the skeleton.' },
+  { id: 'breathe',
+    name: 'Breathe on the wall',
+    cue: 'Breath holds signal panic and pump forearms. Exhale on the pull, inhale on the reset. Slow and quiet.' },
+  { id: 'read-first',
+    name: 'Read the boulder before starting',
+    cue: 'Trace the whole sequence with your eyes before pulling on. Plan hand-foot sequences and rest points. Save 30% of energy right there.' },
+  { id: 'trust-feet',
+    name: 'Trust the feet',
+    cue: 'Once your foot is on a hold, weight it. Timid feet slip; committed feet stick. This is the single biggest V3-to-V5 unlock.' },
+];
