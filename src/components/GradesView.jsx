@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useStore } from '../store.jsx';
-import { gradesFor, ordinalOf, STYLE_LABELS } from '../data/grades.js';
+import { gradesFor, ordinalOf, STYLE_LABELS, resolveGrade } from '../data/grades.js';
 import GradeLogSheet from './GradeLogSheet.jsx';
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { fmtDate, parseDate } from '../utils/dates.js';
@@ -49,6 +49,8 @@ export default function GradesView() {
       <StyleCard
         style="toprope"
         data={tr}
+        currentFlash={data.flashTR}
+        onSetFlash={(g) => actions.setFlashGrade('toprope', g)}
         onLog={() => setLogStyle('toprope')}
         onSetProject={(g) => actions.setGradeLevel('toprope', 'project', g)}
       />
@@ -56,6 +58,8 @@ export default function GradesView() {
       {/* Boulder — compact strip */}
       <BoulderStrip
         data={bo}
+        currentFlash={data.flashBoulder}
+        onSetFlash={(g) => actions.setFlashGrade('boulder', g)}
         expanded={boulderOpen}
         onExpand={() => setBoulderOpen((s) => !s)}
         onLog={() => setLogStyle('boulder')}
@@ -75,7 +79,7 @@ export default function GradesView() {
 }
 
 // -------------------------- Top rope card --------------------------
-function StyleCard({ style, data, onLog, onSetProject }) {
+function StyleCard({ style, data, currentFlash, onSetFlash, onLog, onSetProject }) {
   const list = gradesFor(style);
   const attempts = data.attempts || [];
 
@@ -122,6 +126,13 @@ function StyleCard({ style, data, onLog, onSetProject }) {
         </div>
       )}
 
+      {/* Current flash — powers session grades */}
+      <FlashBumper
+        style={style}
+        current={currentFlash}
+        onSet={onSetFlash}
+      />
+
       {/* Project picker */}
       <div className="px-4 py-3 border-t border-zinc-800/70">
         <div className="text-[10px] uppercase tracking-wide text-zinc-500 mb-1.5">Current project</div>
@@ -163,8 +174,51 @@ function StyleCard({ style, data, onLog, onSetProject }) {
   );
 }
 
+// -------------------------- Flash bumper --------------------------
+// Prominent chip at the top of each style card. `current` is the
+// user-set flash grade that drives session doses (warmup, ARC, stretch).
+// Distinct from the auto-derived "highest ever flashed" — this is what
+// they're comfortably flashing NOW, and they own the update.
+function FlashBumper({ style, current, onSet }) {
+  const down = resolveGrade(style, current, -1);
+  const up   = resolveGrade(style, current, +1);
+  const canDown = down !== current;
+  const canUp   = up !== current;
+  return (
+    <div className="px-4 py-3 border-t border-zinc-800/70 bg-emerald-500/5">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-wide text-emerald-400/80">
+            Current flash · powers session grades
+          </div>
+          <div className="text-lg font-bold text-emerald-300 tabular-nums mt-0.5">
+            {current || '—'}
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <button
+            onClick={() => canDown && onSet(down)}
+            disabled={!canDown}
+            className="w-9 h-9 rounded-lg border border-zinc-700 text-zinc-300 disabled:text-zinc-600 disabled:border-zinc-800 hover:border-zinc-500 text-lg font-bold"
+            aria-label="Bump flash down"
+          >−</button>
+          <button
+            onClick={() => canUp && onSet(up)}
+            disabled={!canUp}
+            className="px-3 h-9 rounded-lg bg-emerald-500 text-zinc-950 disabled:bg-zinc-800 disabled:text-zinc-600 font-bold text-sm"
+            aria-label="Bump flash up"
+          >Bump ↑</button>
+        </div>
+      </div>
+      <div className="mt-1.5 text-[10px] text-zinc-500 leading-tight">
+        Bump when this grade feels easy 3 sessions in a row. Warmup + ARC + stretch attempts all shift with it.
+      </div>
+    </div>
+  );
+}
+
 // -------------------------- Boulder compact strip --------------------------
-function BoulderStrip({ data, expanded, onExpand, onLog, onSetProject }) {
+function BoulderStrip({ data, currentFlash, onSetFlash, expanded, onExpand, onLog, onSetProject }) {
   const list = gradesFor('boulder');
   const attempts = data.attempts || [];
   const highestFlash = useMemo(() => hardestBy(attempts, 'boulder', (a) => a.flash && a.sent), [attempts]);
@@ -189,7 +243,9 @@ function BoulderStrip({ data, expanded, onExpand, onLog, onSetProject }) {
       </button>
 
       {expanded && (
-        <div className="px-4 pb-3 border-t border-zinc-800/70 pt-2">
+        <div className="border-t border-zinc-800/70">
+          <FlashBumper style="boulder" current={currentFlash} onSet={onSetFlash} />
+          <div className="px-4 pb-3 pt-3 border-t border-zinc-800/70">
           <div className="flex items-center justify-between mb-2">
             <div className="text-[10px] uppercase tracking-wide text-zinc-500">Current project</div>
             <button onClick={onLog} className="bg-orange-500 hover:bg-orange-400 text-zinc-950 font-bold rounded-lg px-3 py-1 text-xs">+ Log</button>
@@ -222,6 +278,7 @@ function BoulderStrip({ data, expanded, onExpand, onLog, onSetProject }) {
               ))}
             </ul>
           )}
+          </div>
         </div>
       )}
     </div>

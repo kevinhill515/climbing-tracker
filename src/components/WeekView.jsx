@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import ProgressRing from './ProgressRing.jsx';
 import SessionSheet from './SessionSheet.jsx';
 import PhaseJourney from './PhaseJourney.jsx';
@@ -6,6 +6,7 @@ import ActivityHeatmap from './ActivityHeatmap.jsx';
 import DayDetailSheet from './DayDetailSheet.jsx';
 import ExtraSessionSheet from './ExtraSessionSheet.jsx';
 import { SESSION_TYPES, SESSION_META, phaseById, isDeloadWeek } from '../data/program.js';
+import { resolveGrade, ordinalOf } from '../data/grades.js';
 import { useStore } from '../store.jsx';
 import { weekId, weekNumber, fmtWeekRange } from '../utils/dates.js';
 
@@ -74,6 +75,8 @@ export default function WeekView() {
           </div>
         </div>
       </div>
+
+      <WeeklyScorecard data={data} wid={wid} />
 
       {/* Session cards — the 3 target protocol sessions per week */}
       <div className="space-y-2.5">
@@ -163,6 +166,116 @@ export default function WeekView() {
         open={extraOpen}
         onClose={() => setExtraOpen(false)}
       />
+    </div>
+  );
+}
+
+// Weekly scorecard — what actually happened this week, broken out by the
+// Bechtel/Hörst intensity buckets so you can see the mix at a glance.
+//
+//   Focus reps    = TR attempts at current flash grade (efficiency work)
+//   Moderate      = TR attempts 2-3 grades below flash (ARC + warmup)
+//   Stretch       = TR attempts above flash (stretch attempts / real projecting)
+//   Boulders      = all boulder attempts this week
+//   Drills        = unique drill keys practiced this week (silent-feet, drop-knee, …)
+function WeeklyScorecard({ data, wid }) {
+  const flashTR = data.flashTR;
+  const stats = useMemo(() => {
+    const trAttempts = (data.grades?.toprope?.attempts || []).filter((a) => a.weekId === wid);
+    const boAttempts = (data.grades?.boulder?.attempts || []).filter((a) => a.weekId === wid);
+    const flashOrd = ordinalOf('toprope', flashTR);
+    let focus = 0, moderate = 0, stretch = 0;
+    const drills = new Set();
+    for (const a of trAttempts) {
+      const o = ordinalOf('toprope', a.grade);
+      if (o < 0) continue;
+      if (o === flashOrd) focus++;
+      else if (o < flashOrd) moderate++;
+      else stretch++;
+      if (a.drillFocus) drills.add(a.drillFocus);
+    }
+    // Bechtel/Hörst target ratios — reference for the UI hint
+    const total = focus + moderate + stretch;
+    const focusPct    = total ? Math.round((focus    / total) * 100) : 0;
+    const moderatePct = total ? Math.round((moderate / total) * 100) : 0;
+    const stretchPct  = total ? Math.round((stretch  / total) * 100) : 0;
+    return {
+      focus, moderate, stretch,
+      focusPct, moderatePct, stretchPct,
+      total,
+      boulders: boAttempts.length,
+      drills: drills.size,
+    };
+  }, [data.grades, wid, flashTR]);
+
+  return (
+    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden mb-4">
+      <div className="px-4 py-2.5 border-b border-zinc-800 flex items-center justify-between">
+        <div className="text-xs uppercase tracking-wide text-zinc-400 font-medium">This week</div>
+        <div className="text-[10px] text-zinc-500">flash: <span className="text-emerald-300 tabular-nums">{flashTR}</span></div>
+      </div>
+      <div className="p-3 grid grid-cols-3 gap-2">
+        <StatBox
+          label="Focus reps"
+          hint={`@ ${flashTR}`}
+          value={stats.focus}
+          pct={stats.focusPct}
+          targetPct="20-30%"
+          accent="orange"
+        />
+        <StatBox
+          label="Moderate"
+          hint="below flash"
+          value={stats.moderate}
+          pct={stats.moderatePct}
+          targetPct="60-70%"
+          accent="sky"
+        />
+        <StatBox
+          label="Stretch"
+          hint="above flash"
+          value={stats.stretch}
+          pct={stats.stretchPct}
+          targetPct="5-10%"
+          accent="rose"
+        />
+      </div>
+      <div className="px-3 pb-3 grid grid-cols-2 gap-2">
+        <MiniStat label="Boulders" value={stats.boulders} />
+        <MiniStat label="Drills practiced" value={stats.drills > 0 ? `${stats.drills} of 5` : '0'} />
+      </div>
+      {stats.total > 0 && (
+        <div className="px-4 pb-3 text-[10px] text-zinc-500 leading-tight">
+          Bechtel/Hörst mix: 60-70% moderate · 20-30% flash · 5-10% stretch.{' '}
+          {stats.focusPct >= 20 && stats.focusPct <= 35 ? 'On target for focus reps ✓' : stats.focusPct < 20 ? '↑ more focus reps at flash' : '↓ ease the flash volume'}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StatBox({ label, hint, value, pct, targetPct, accent }) {
+  const accentClass =
+    accent === 'orange' ? 'text-orange-300' :
+    accent === 'sky'    ? 'text-sky-300'    :
+    accent === 'rose'   ? 'text-rose-300'   : 'text-zinc-300';
+  return (
+    <div className="bg-zinc-800/50 rounded-lg p-2.5 min-w-0">
+      <div className="text-[9px] uppercase tracking-wide text-zinc-500 truncate">{label}</div>
+      <div className="text-[9px] text-zinc-600 truncate">{hint}</div>
+      <div className={`text-lg font-bold tabular-nums ${accentClass} mt-0.5`}>{value}</div>
+      <div className="text-[9px] text-zinc-500 tabular-nums">
+        {pct}% <span className="text-zinc-600">· goal {targetPct}</span>
+      </div>
+    </div>
+  );
+}
+
+function MiniStat({ label, value }) {
+  return (
+    <div className="bg-zinc-800/30 rounded-lg p-2 flex items-baseline justify-between">
+      <span className="text-[10px] uppercase tracking-wide text-zinc-500">{label}</span>
+      <span className="text-sm font-bold text-zinc-100 tabular-nums">{value}</span>
     </div>
   );
 }

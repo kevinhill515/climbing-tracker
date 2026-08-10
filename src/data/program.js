@@ -2,6 +2,8 @@
 // Top-rope focused with bouldering as a movement / power supplement.
 // End goal: 5.12d, lead-climb certified, prepared for outdoor.
 
+import { resolveGrade } from './grades.js';
+
 // Session IDs are internal keys; SESSION_META.name is the display label.
 // Renamed from "Session 1..4" to descriptive names on 2026-06-24.
 export const SESSION_TYPES = ['full-climb', 'endurance', 'movement', 'full-body'];
@@ -204,27 +206,37 @@ export const PHASES = [
       "Log every climb. You won't remember the details in 6 months — the app will.",
     ],
     sessions: {
+      // Phase 1 sessions are ADAPTIVE — grades derive from state.flashTR
+      // via resolveGrade so the program updates as the user's flash moves.
+      // Phases 2-6 stay static below (migrate them when the user gets there).
       'full-climb': {
-        steps: session1Steps({
-          warmupGrade: '5.7',
-          effGradeFlash: '5.10a',   // your current flash
-          effRoutes: 2,             // 2 routes × 2 attempts = 4 quality flash reps · stop if forced
-          effAttempts: 2,
-          stretchGrade: '5.10b',    // ONE grade above flash · optional reach attempt when energy is spicy · phase goal
-          arcGrade: '5.7',
-          pullSets: 3,
-          gripSecs: 5,
-        }),
+        stepsFor: (state) => {
+          const flash = state.flashTR;
+          return session1Steps({
+            warmupGrade:   resolveGrade('toprope', flash, -3),    // 3 grades below flash
+            effGradeFlash: flash,                                 // your current flash
+            effRoutes: 2,
+            effAttempts: 2,
+            stretchGrade:  resolveGrade('toprope', flash, +1),    // one grade above flash · phase target
+            arcGrade:      resolveGrade('toprope', flash, -3),
+            pullSets: 3,
+            gripSecs: 5,
+          });
+        },
       },
       'endurance': {
-        steps: session2Steps({
-          warmupGrade: '5.7',
-          freshFlashGrade: '5.10a',   // 1 route × 2 attempts, fresh, before ARC · second quality-rep window
-          arcLadder: [{ grade: '5.8', laps: 3 }, { grade: '5.7', laps: 3 }],
-          // No route repeats in Phase 1 — build the aerobic base first.
-          // Descending ladder: engaged at 5.8, drop to 5.7 when forearms
-          // fatigue so the session finishes strong instead of failing.
-        }),
+        stepsFor: (state) => {
+          const flash = state.flashTR;
+          return session2Steps({
+            warmupGrade:     resolveGrade('toprope', flash, -3),
+            freshFlashGrade: flash,   // 1 route × 2 attempts, fresh, before ARC
+            arcLadder: [
+              { grade: resolveGrade('toprope', flash, -2), laps: 3 },  // engaged
+              { grade: resolveGrade('toprope', flash, -3), laps: 3 },  // drop when fatigued
+            ],
+            // No route repeats in Phase 1 — build aerobic base first.
+          });
+        },
       },
       'movement': {
         steps: session3Steps({
@@ -530,6 +542,17 @@ export const PHASES = [
 
 export function phaseById(id) {
   return PHASES.find((p) => p.id === id) || PHASES[0];
+}
+
+// Resolve a session's step list. Adaptive sessions expose `stepsFor(state)`
+// so grades pull from state.flashTR / state.flashBoulder; static sessions
+// keep the classic `steps` array. Callers use this instead of reading
+// `.steps` directly — no fallback logic scattered across the UI.
+export function getSessionSteps(phase, sessionType, state) {
+  const s = phase?.sessions?.[sessionType];
+  if (!s) return [];
+  if (typeof s.stepsFor === 'function') return s.stepsFor(state || {});
+  return s.steps || [];
 }
 
 export function isDeloadWeek(weekNumber, phaseId) {

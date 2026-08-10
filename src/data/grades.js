@@ -38,6 +38,16 @@ export function nextGrade(style, grade) {
   return arr[i + 1];
 }
 
+/** Grade at `offset` positions from `base`. -3 = 3 grades easier, +1 = 1
+ *  harder. Clamps to the ladder ends. Powers adaptive session grades
+ *  (warmup, ARC, stretch attempts) driven by the user's current flash. */
+export function resolveGrade(style, base, offset) {
+  const arr = gradesFor(style);
+  const i = arr.indexOf(base);
+  if (i < 0) return base;
+  return arr[Math.max(0, Math.min(arr.length - 1, i + offset))];
+}
+
 /** Colour bucket for a grade — used to tint the badge in the UI. Rough
  *  aggregate difficulty so the pill's colour tells you at a glance. */
 export function tintFor(style, grade) {

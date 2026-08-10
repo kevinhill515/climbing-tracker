@@ -27,6 +27,36 @@ export default function MilestonesView() {
   const outdoor = data.milestones?.outdoor || {};
   const drills = data.milestones?.drills || {};
 
+  // Drill session counts from logged drillFocus on grade attempts.
+  // Counts UNIQUE date+sessionType combos, not raw attempts — 5 attempts of
+  // silent-feet in one session count as 1 drilled session, not 5.
+  const drillCounts = useMemo(() => {
+    // exercise kebab-key → milestones camel key
+    const drillKeyMap = {
+      'silent-feet':      'silentFeet',
+      'drop-knee':        'dropKnee',
+      'flag':             'flag',
+      'hand-foot-match':  'handFootMatch',
+      'outside-edge':     'outsideEdge',
+    };
+    const seen = { silentFeet: new Set(), dropKnee: new Set(), flag: new Set(), handFootMatch: new Set(), outsideEdge: new Set() };
+    const allAttempts = [
+      ...(data.grades.toprope.attempts || []),
+      ...(data.grades.boulder.attempts || []),
+    ];
+    for (const a of allAttempts) {
+      const key = drillKeyMap[a.drillFocus];
+      if (!key) continue;
+      const sessionKey = `${a.date}|${a.sessionType || '-'}`;
+      seen[key].add(sessionKey);
+    }
+    return Object.fromEntries(Object.entries(seen).map(([k, s]) => [k, s.size]));
+  }, [data.grades]);
+
+  // Threshold for auto-mastery suggestion — 8 unique drilled sessions is
+  // roughly 2 months of weekly drilling on Movement day.
+  const MASTERY_THRESHOLD = 8;
+
   return (
     <div className="px-4 pt-3 pb-24 max-w-xl mx-auto fade-in">
       <h1 className="text-xl font-bold text-zinc-100 mb-1">Milestones</h1>
@@ -130,8 +160,11 @@ export default function MilestonesView() {
         </ul>
       </Card>
 
-      {/* Technique drills */}
+      {/* Technique drills — self-affirmed mastery with auto session counter */}
       <Card title="Technique drills mastered">
+        <p className="text-[10px] text-zinc-500 mb-2 leading-tight">
+          Count = unique sessions where you drilled it. Mark mastered when the pattern feels automatic under load — {MASTERY_THRESHOLD}+ sessions is the rough threshold.
+        </p>
         <ul className="space-y-2">
           {[
             { key: 'silentFeet',    label: 'Silent feet' },
@@ -139,14 +172,33 @@ export default function MilestonesView() {
             { key: 'flag',          label: 'Flag' },
             { key: 'handFootMatch', label: 'Hand-foot match' },
             { key: 'outsideEdge',   label: 'Outside edge / hip-in' },
-          ].map((row) => (
-            <Checkbox
-              key={row.key}
-              checked={!!drills[row.key]}
-              label={row.label}
-              onToggle={() => actions.toggleDrillMastery(row.key)}
-            />
-          ))}
+          ].map((row) => {
+            const count = drillCounts[row.key] || 0;
+            const readyForMastery = count >= MASTERY_THRESHOLD && !drills[row.key];
+            return (
+              <li key={row.key} className="flex items-center gap-2">
+                <div className="flex-1 min-w-0">
+                  <Checkbox
+                    checked={!!drills[row.key]}
+                    label={row.label}
+                    onToggle={() => actions.toggleDrillMastery(row.key)}
+                  />
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <span className={`text-[10px] tabular-nums font-semibold rounded px-1.5 py-0.5 ${
+                    count === 0 ? 'text-zinc-600 bg-zinc-800/50' :
+                    readyForMastery ? 'text-emerald-300 bg-emerald-500/20 border border-emerald-500/40' :
+                    'text-orange-300 bg-orange-500/15'
+                  }`}>
+                    {count}× drilled
+                  </span>
+                  {readyForMastery && (
+                    <span className="text-[10px] text-emerald-400" title="Ready to mark mastered">→</span>
+                  )}
+                </div>
+              </li>
+            );
+          })}
         </ul>
       </Card>
 

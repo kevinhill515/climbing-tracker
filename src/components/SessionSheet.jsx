@@ -4,7 +4,7 @@ import PrepSheet from './PrepSheet.jsx';
 import ClimbLogSheet from './ClimbLogSheet.jsx';
 import StrengthCheckSheet from './StrengthCheckSheet.jsx';
 import { getExercise } from '../data/exercises.js';
-import { SESSION_META } from '../data/program.js';
+import { SESSION_META, getSessionSteps } from '../data/program.js';
 import { useStore } from '../store.jsx';
 import { weekId, today } from '../utils/dates.js';
 import { useMemo, useState } from 'react';
@@ -54,6 +54,10 @@ export default function SessionSheet({ open, onClose, sessionType, phase }) {
   const session = phase.sessions[sessionType];
   if (!session) return null;
 
+  // Resolve steps through getSessionSteps so adaptive sessions (Phase 1)
+  // pull grades from state.flashTR; static sessions keep their .steps.
+  const steps = getSessionSteps(phase, sessionType, data);
+
   const wid = weekId();
   const isDone = !!data?.weeks?.[wid]?.[sessionType];
   const meta = SESSION_META[sessionType];
@@ -91,7 +95,7 @@ export default function SessionSheet({ open, onClose, sessionType, phase }) {
           {/* Steps grouped by top-level kind: Prep / Top rope / Boulder / Off */}
           {(() => {
             const buckets = { prep: [], toprope: [], boulder: [], off: [] };
-            session.steps.forEach((step, i) => {
+            steps.forEach((step, i) => {
               const ex = getExercise(step.ex);
               // If a step declares an explicit `group` (e.g. Session 4's
               // 'push' / 'pull' / 'legs' / 'core'), respect that first —

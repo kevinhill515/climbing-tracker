@@ -17,6 +17,12 @@ const DEFAULT_DATA = () => ({
   currentPhase: 1,
   phaseOverride: null,
 
+  // Adaptive grade source-of-truth for session doses (warmup, ARC ladder,
+  // stretch attempts). Bumped manually via GradesView "bump flash" when
+  // the user consolidates a grade — the whole program updates in one place.
+  flashTR: '5.10a',
+  flashBoulder: 'V2',
+
   // Per-week completion tags — same shape as calisthenics: keyed by
   // Saturday-of-week YYYY-MM-DD. Values map session type → true.
   weeks: {},
@@ -426,6 +432,15 @@ export function StoreProvider({ children }) {
 
   const setStartDate = useCallback((iso) => patch((d) => ({ ...d, startDate: iso })), [patch]);
 
+  // Adaptive flash — flows into Phase 1 stepsFor(state) so warmup/ARC/stretch
+  // grades update everywhere in one place.
+  const setFlashGrade = useCallback((style, grade) => {
+    patch((d) => ({
+      ...d,
+      [style === 'boulder' ? 'flashBoulder' : 'flashTR']: grade,
+    }));
+  }, [patch]);
+
   const forceRestoreFromCloud = useCallback(async () => {
     if (!SUPA_CONFIGURED) return false;
     const rows = await fetchAllUsers();
@@ -456,6 +471,7 @@ export function StoreProvider({ children }) {
       advancePhase,
       setPhaseOverride,
       setStartDate,
+      setFlashGrade,
       toggleLeadSubitem,
       toggleOutdoorFlag,
       setOutdoorDate,
@@ -468,7 +484,7 @@ export function StoreProvider({ children }) {
     toggleSession, addLog, removeLog, addSession, removeSession,
     addHealthCheck, removeHealthCheck, addTechniqueNote,
     setGradeLevel, logGradeAttempt, removeGradeAttempt,
-    advancePhase, setPhaseOverride, setStartDate,
+    advancePhase, setPhaseOverride, setStartDate, setFlashGrade,
     toggleLeadSubitem, toggleOutdoorFlag, setOutdoorDate, toggleDrillMastery,
     pull, forceRestoreFromCloud,
   ]);
