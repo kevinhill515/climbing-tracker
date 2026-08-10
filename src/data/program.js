@@ -16,10 +16,12 @@ export const LEGACY_SESSION_MAP = {
 
 export const SESSION_META = {
   'full-climb': {
-    name:  'Full Climb',
+    // Internal id stays 'full-climb' so logged data doesn't migrate.
+    // Display label: "Skill" — the day is skill + strength on TR.
+    name:  'Skill',
     color: 'orange',
     icon:  '◔',
-    focus: 'Skill + strength — efficiency, pull, finger tendon work',
+    focus: 'Skill + strength — focus routes, pull, finger tendon work',
     time:  '80–95 min',
   },
   'endurance': {
@@ -205,10 +207,10 @@ export const PHASES = [
       'full-climb': {
         steps: session1Steps({
           warmupGrade: '5.7',
-          effGradeFlash: '5.10a-b',
+          effGradeFlash: '5.10a',   // your current flash
           effRoutes: 2,             // 2 routes × 2 attempts = 4 quality flash reps · stop if forced
           effAttempts: 2,
-          stretchGrade: '5.10c-d',  // optional reach attempt when energy is spicy
+          stretchGrade: '5.10b',    // ONE grade above flash · optional reach attempt when energy is spicy · phase goal
           arcGrade: '5.7',
           pullSets: 3,
           gripSecs: 5,
@@ -217,7 +219,7 @@ export const PHASES = [
       'endurance': {
         steps: session2Steps({
           warmupGrade: '5.7',
-          freshFlashGrade: '5.10a-b',  // 1 route × 2 attempts, fresh, before ARC · second quality-rep window
+          freshFlashGrade: '5.10a',   // 1 route × 2 attempts, fresh, before ARC · second quality-rep window
           arcLadder: [{ grade: '5.8', laps: 3 }, { grade: '5.7', laps: 3 }],
           // No route repeats in Phase 1 — build the aerobic base first.
           // Descending ladder: engaged at 5.8, drop to 5.7 when forearms

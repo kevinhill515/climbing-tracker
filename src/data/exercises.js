@@ -132,10 +132,12 @@ export const EXERCISES = {
       "Exposure to grades above flash builds the mental game — you learn what 'trying hard when unsure' feels like without formally projecting. At Phase 1 your project work IS bouldering; this is just a taste. Real TR projecting enters Phase 2.",
   },
   'efficiency-work': {
+    // Internal id stays 'efficiency-work' so logged data doesn't migrate.
+    // Display label: "Focus routes" — captures the ONE-focus-per-attempt rule.
     style: 'toprope',
-    name: 'Efficiency training',
+    name: 'Focus routes',
     cue:
-      "2–3 routes at your flash grade, 2 attempts per route. ONE technique focus per attempt — foot placement, hip rotation, breath timing, straight arms, silent feet. Rest 5–10 min between climbs (belay swap + walk). Total ~40 min.\n\nAttempt 1 goal: send/redpoint the route and identify a rough spot. Attempt 2 goal: apply the ONE focus, notice what changed.",
+      "2 routes at your flash grade, 2 attempts per route (4 quality reps total). ONE technique focus per attempt — foot placement, hip rotation, breath timing, straight arms, silent feet. Rest 5–10 min between climbs (belay swap + walk).\n\nAttempt 1 goal: send/redpoint the route and identify a rough spot. Attempt 2 goal: apply the ONE focus, notice what changed.\n\nSTOP if the last attempt feels forced. Tired reps groove failure, not skill.",
     why:
       "This is THE workout for your level. Technique is your #1 limiter until 5.11a, and even at 5.12 it accounts for more of your ceiling than strength. Same route + fresh focus is how you rewire movement — new routes with no plan is how you burn time.",
   },
