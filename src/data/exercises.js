@@ -123,6 +123,14 @@ export const EXERCISES = {
   },
 
   // ============ TECHNIQUE / EFFICIENCY ============
+  'stretch-attempt': {
+    style: 'toprope',
+    name: 'Stretch attempt (optional)',
+    cue:
+      "ONE optional attempt on a route ONE grade above your flash — only when energy is genuinely there after efficiency work. Hop on, try hard, work moves for 2-3 minutes, come down. NOT a project you're committing to. NOT required.\n\nIf your last efficiency attempt felt forced, SKIP THIS. Junk attempts at your ceiling teach failure, not skill.",
+    why:
+      "Exposure to grades above flash builds the mental game — you learn what 'trying hard when unsure' feels like without formally projecting. At Phase 1 your project work IS bouldering; this is just a taste. Real TR projecting enters Phase 2.",
+  },
   'efficiency-work': {
     style: 'toprope',
     name: 'Efficiency training',

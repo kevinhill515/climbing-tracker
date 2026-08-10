@@ -91,18 +91,26 @@ const SESSION_4_STEPS = [
 // Session 1 — Full Climb. Skill (efficiency) + strength (pull + finger
 // tendon work). Laps go on the Endurance day; here just a short cool-down
 // after the hard efficiency block.
-function session1Steps({ warmupGrade, effGradeFlash, arcGrade, pullSets, pullVariant = 'pullup-negative', gripSecs, hangboard = false }) {
+function session1Steps({ warmupGrade, effGradeFlash, effRoutes = 2, effAttempts = 2, stretchGrade, arcGrade, pullSets, pullVariant = 'pullup-negative', gripSecs, hangboard = false }) {
   const steps = [
     { ex: 'hip-mobility',    dose: '5-7 min hip stretches — start warm' },
     { ex: 'joint-prep',      dose: '5 min wrist + shoulder routine' },
     { ex: 'warmup-route',    dose: `1 easy route at ${warmupGrade}` },
-    { ex: 'efficiency-work', dose: `2-3 routes at ${effGradeFlash}, 2 attempts each, ONE focus per attempt · ~40 min` },
+    { ex: 'efficiency-work', dose: `${effRoutes} routes at ${effGradeFlash}, ${effAttempts} attempts each · ONE focus per attempt · stop if the last attempt feels forced` },
+  ];
+  if (stretchGrade) {
+    steps.push({
+      ex: 'stretch-attempt',
+      dose: `OPTIONAL · 1 attempt at ${stretchGrade} — only when energy is genuinely there · work the moves, come down`,
+    });
+  }
+  steps.push(
     // Off-the-wall strength block (comes after the hard climbing so climbing is fresh)
     { ex: pullVariant,       dose: pullVariant === 'weighted-pullup' ? `4 sets × 5 reps · rest 3 min` : `${pullSets} sets × 5 reps (3-5s lower) · rest 2 min` },
     { ex: 'grip-half-crimp', dose: `5× ${gripSecs}s on / ${gripSecs}s off — LIGHT` },
     { ex: 'grip-open-drag',  dose: `5× ${gripSecs}s on / ${gripSecs}s off — LIGHT` },
     { ex: 'grip-sloper',     dose: `5× ${gripSecs}s on / ${gripSecs}s off — LIGHT` },
-  ];
+  );
   if (hangboard) {
     steps.push({ ex: 'hangboard-repeaters', dose: 'Optional — only when everything above feels easy' });
   }
@@ -118,12 +126,21 @@ function session1Steps({ warmupGrade, effGradeFlash, arcGrade, pullSets, pullVar
 // starts where muscles are actually engaged and drops as forearms fatigue —
 // aerobic base without failing the session. Falls back to the single-grade
 // pattern (arcGrade + arcLaps) when arcLadder is not provided.
-function session2Steps({ warmupGrade, arcGrade, arcLaps = 6, arcLadder, repeatGrade, repeatRoutes = 2, repeatLaps = 2 }) {
+function session2Steps({ warmupGrade, freshFlashGrade, freshFlashRoutes = 1, freshFlashAttempts = 2, arcGrade, arcLaps = 6, arcLadder, repeatGrade, repeatRoutes = 2, repeatLaps = 2 }) {
   const steps = [
     { ex: 'hip-mobility',    dose: '5-7 min hip stretches — start warm' },
     { ex: 'joint-prep',      dose: '5 min wrist + shoulder routine' },
     { ex: 'warmup-route',    dose: `1 easy route at ${warmupGrade}` },
   ];
+  if (freshFlashGrade) {
+    // Fresh flash attempts BEFORE ARC — quality reps at limit while
+    // muscles are fresh. Second quality-rep window in the week to avoid
+    // grinding all flash attempts into one Full Climb session.
+    steps.push({
+      ex: 'efficiency-work',
+      dose: `${freshFlashRoutes} route at ${freshFlashGrade}, ${freshFlashAttempts} attempts · quality reps FRESH before ARC · ONE focus per attempt`,
+    });
+  }
   if (repeatGrade) {
     steps.push({
       ex: 'route-repeats',
@@ -189,6 +206,9 @@ export const PHASES = [
         steps: session1Steps({
           warmupGrade: '5.7',
           effGradeFlash: '5.10a-b',
+          effRoutes: 2,             // 2 routes × 2 attempts = 4 quality flash reps · stop if forced
+          effAttempts: 2,
+          stretchGrade: '5.10c-d',  // optional reach attempt when energy is spicy
           arcGrade: '5.7',
           pullSets: 3,
           gripSecs: 5,
@@ -197,6 +217,7 @@ export const PHASES = [
       'endurance': {
         steps: session2Steps({
           warmupGrade: '5.7',
+          freshFlashGrade: '5.10a-b',  // 1 route × 2 attempts, fresh, before ARC · second quality-rep window
           arcLadder: [{ grade: '5.8', laps: 3 }, { grade: '5.7', laps: 3 }],
           // No route repeats in Phase 1 — build the aerobic base first.
           // Descending ladder: engaged at 5.8, drop to 5.7 when forearms
