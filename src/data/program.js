@@ -113,7 +113,12 @@ function session1Steps({ warmupGrade, effGradeFlash, arcGrade, pullSets, pullVar
 
 // Session 2 — Endurance. Volume day: TR laps are the whole point. Route
 // repeats added from Phase 2+. Boulder cool-down closes the day.
-function session2Steps({ warmupGrade, arcGrade, arcLaps = 6, repeatGrade, repeatRoutes = 2, repeatLaps = 2 }) {
+//
+// `arcLadder` (optional) is a descending-grade ARC: e.g. [{grade:'5.8', laps:3}, {grade:'5.7', laps:3}]
+// starts where muscles are actually engaged and drops as forearms fatigue —
+// aerobic base without failing the session. Falls back to the single-grade
+// pattern (arcGrade + arcLaps) when arcLadder is not provided.
+function session2Steps({ warmupGrade, arcGrade, arcLaps = 6, arcLadder, repeatGrade, repeatRoutes = 2, repeatLaps = 2 }) {
   const steps = [
     { ex: 'hip-mobility',    dose: '5-7 min hip stretches — start warm' },
     { ex: 'joint-prep',      dose: '5 min wrist + shoulder routine' },
@@ -125,10 +130,10 @@ function session2Steps({ warmupGrade, arcGrade, arcLaps = 6, repeatGrade, repeat
       dose: `${repeatRoutes} routes at ${repeatGrade}, ${repeatLaps} laps each · 3-5 min rest between laps · the pump-tolerance work`,
     });
   }
-  steps.push({
-    ex: 'arc-training',
-    dose: `${arcLaps} laps on ${arcGrade}, minimal rest between (belay swap = your rest) · the aerobic base`,
-  });
+  const arcDose = arcLadder
+    ? `${arcLadder.map(r => `${r.laps} × ${r.grade}`).join(', then ')} — descending ladder, belay swap = your rest · the aerobic base`
+    : `${arcLaps} laps on ${arcGrade}, minimal rest between (belay swap = your rest) · the aerobic base`;
+  steps.push({ ex: 'arc-training', dose: arcDose });
   steps.push({
     ex: 'boulder-cooldown',
     dose: '2-3 easy boulders (V0-V1) — flow only, complementary movement',
@@ -138,13 +143,20 @@ function session2Steps({ warmupGrade, arcGrade, arcLaps = 6, repeatGrade, repeat
 
 // Session 3 — Movement. Bouldering-primary movement work with a light
 // top-rope cool-down to end the day fresh in a different body position.
-function session3Steps({ boulderGrade, driveGrade, includeLead = false }) {
+//
+// Movement drills use a two-tier grade approach: easy grade to *ingrain*
+// the pattern, harder grade to *test* it under real load. `driveGrade` is
+// the ingrain tier; `driveTestGrade` (optional) is the test tier.
+function session3Steps({ boulderGrade, driveGrade, driveTestGrade, includeLead = false }) {
+  const drillDose = driveTestGrade
+    ? `Pick ONE drill · 2 routes at ${driveGrade} to ingrain the pattern · then 1-2 routes at ${driveTestGrade} to test it under load`
+    : `Pick ONE drill and go deep · 2-3 routes at ${driveGrade}`;
   const steps = [
     { ex: 'hip-mobility',    dose: '5-7 min hip stretches — start warm' },
     { ex: 'joint-prep',      dose: '5 min wrist + shoulder routine' },
     { ex: 'warmup-boulder',  dose: '1 easy V0 boulder or short traverse' },
     { ex: 'boulder-block',   dose: `30-45 min at ${boulderGrade}, quality over volume, 3-5 min rest` },
-    { ex: 'movement-drill',  dose: `Pick ONE drill and go deep · 2-3 routes at ${driveGrade}` },
+    { ex: 'movement-drill',  dose: drillDose },
     { ex: 'no-hands-slab',   dose: '4-6 reps on a slab route, 1-2 min rest' },
   ];
   if (includeLead) {
@@ -185,16 +197,17 @@ export const PHASES = [
       'endurance': {
         steps: session2Steps({
           warmupGrade: '5.7',
-          arcGrade: '5.7',
-          arcLaps: 6,
-          // No route repeats in Phase 1 — build the aerobic base first
-          // via a long block of easy laps.
+          arcLadder: [{ grade: '5.8', laps: 3 }, { grade: '5.7', laps: 3 }],
+          // No route repeats in Phase 1 — build the aerobic base first.
+          // Descending ladder: engaged at 5.8, drop to 5.7 when forearms
+          // fatigue so the session finishes strong instead of failing.
         }),
       },
       'movement': {
         steps: session3Steps({
           boulderGrade: 'V2-V3',
-          driveGrade: '5.7-5.8',
+          driveGrade: '5.7-5.8',       // ingrain
+          driveTestGrade: '5.9-5.10a', // test under load
         }),
       },
       'full-body': { steps: SESSION_4_STEPS },
