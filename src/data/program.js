@@ -75,7 +75,7 @@ function session1Steps({ warmupGrade, effGradeFlash, effGradeSub, arcGrade, pull
     { ex: 'joint-prep',      dose: '5 min wrist + shoulder routine' },
     // Climbing block
     { ex: 'warmup-route',    dose: `1 easy route at ${warmupGrade}` },
-    { ex: 'efficiency-work', dose: `TR: 3 routes at ${effGradeFlash} + 3 routes at ${effGradeSub}, 1-2 attempts each, ONE focus per attempt · 45 min` },
+    { ex: 'efficiency-work', dose: `3 routes at ${effGradeFlash} + 3 routes at ${effGradeSub} · 45 min` },
     { ex: 'arc-training',    dose: `20-30 min continuous on ${arcGrade}, conversation pace` },
     // Strength / finger tendon block (after climbing so climbing is fresh work)
     { ex: pullVariant,       dose: pullVariant === 'weighted-pullup' ? `4 sets × 5 reps · rest 3 min` : `${pullSets} sets × 5 reps (3-5s lower) · rest 2 min` },

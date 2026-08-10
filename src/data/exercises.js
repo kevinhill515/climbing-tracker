@@ -65,10 +65,18 @@ export const EXERCISES = {
   'efficiency-work': {
     on_wall: true,
     name: 'Efficiency training',
-    cue:
-      "Pick a route at your flash grade. Climb it once. Identify ONE thing to improve — foot placement, hip rotation, breath timing, a specific move. Rest 2-5 min. Climb the same route again with that single focus. Repeat 3× per route, then move to 3-5 more routes.",
     why:
-      "This is THE workout for your level. Technique is your #1 limiter until 5.11a, and even at 5.12 it accounts for more of your ceiling than strength. Repeating a route with a fresh focus is how you actually rewire movement — cycling mindlessly through new routes does not.",
+      "This is THE workout for your level. Technique is your #1 limiter until 5.11a, and even at 5.12 it accounts for more of your ceiling than strength. Repeating a route/boulder with a fresh focus is how you actually rewire movement — cycling mindlessly through new climbs does not.",
+    // The how-to differs meaningfully by style — top rope is pumpier so
+    // you can't reasonably re-climb 3× per route; bouldering has short
+    // enough attempts that 3× per problem IS the pattern. ClimbLogSheet
+    // renders whichever cue matches the active style toggle.
+    cueByStyle: {
+      toprope:
+        "3 routes at your flash grade + 3 routes just below flash. 1–2 attempts per route (this is TR — pump destroys form on attempt 3). ONE technique focus per attempt: foot placement, hip rotation, breath timing, straight arms, silent feet. Rest 5–10 min between climbs (belay swap + walk). Total ~45 min.",
+      boulder:
+        "3–5 boulders at your flash grade. 3× per boulder — same problem, ONE new focus per attempt (foot placement, body position, hip turn, hand sequence). Rest 2–5 min between attempts. Then move to the next boulder. Total ~45 min.",
+    },
   },
   'movement-drill': {
     on_wall: true,
@@ -397,17 +405,7 @@ export const EXERCISES = {
     why:
       "Anti-rotation core work. The core-to-limb connection that lets you generate force from movement, not just isolate muscles.",
   },
-  'hip-mobility': {
-    name: 'Hip mobility',
-    cue:
-      "3-min routine:\n" +
-      "- Hip flexor stretch (lunge, back knee down, hips forward) · 30s each side\n" +
-      "- Pigeon pose · 45s each side\n" +
-      "- Deep squat hold (heels flat, chest up) · 60s\n" +
-      "- Cat-cow · 10 slow reps",
-    why:
-      "Tight hips = high stepping / drop knees are limited. Climbing chronically tightens hip flexors — this counters it.",
-  },
+  // (hip-mobility with full checklist is defined near the top of this file.)
   'zone2-cardio': {
     name: 'Zone 2 cardio (optional)',
     cue:
