@@ -3,13 +3,14 @@ import { useMemo, useState } from 'react';
 import DayDetailSheet from './DayDetailSheet.jsx';
 import { gradesFor, ordinalOf, STYLE_LABELS } from '../data/grades.js';
 
-// Log tab — everything logged, two views:
-//   Sessions: day-by-day list (was the old HistoryView)
-//   Climbs:   flat, filterable, sortable list of every climb attempt
-// Also surfaces recent PRs at the top of the Climbs view.
+// Log tab — everything logged, three views:
+//   Sessions:    day-by-day list (was the old HistoryView)
+//   Climbs:      flat, filterable, sortable list of every climb attempt
+//   Weekly mix:  scorecard-style rows, one per week — focus/moderate/stretch
+//                buckets for both styles, drills practiced, on-target hint
 export default function LogView() {
   const { data, actions } = useStore();
-  const [view, setView] = useState('sessions'); // 'sessions' | 'climbs'
+  const [view, setView] = useState('sessions'); // 'sessions' | 'climbs' | 'weekly'
   const [pickedDate, setPickedDate] = useState(null);
   if (!data) return null;
 
@@ -17,14 +18,15 @@ export default function LogView() {
     <div className="px-4 pt-3 pb-24 max-w-xl mx-auto fade-in">
       <h1 className="text-xl font-bold text-zinc-100 mb-3">Log</h1>
 
-      <div className="grid grid-cols-2 gap-2 mb-4">
+      <div className="grid grid-cols-3 gap-2 mb-4">
         <TabBtn active={view === 'sessions'} onClick={() => setView('sessions')} label="Sessions" />
-        <TabBtn active={view === 'climbs'}   onClick={() => setView('climbs')}   label="All climbs" />
+        <TabBtn active={view === 'climbs'}   onClick={() => setView('climbs')}   label="Climbs" />
+        <TabBtn active={view === 'weekly'}   onClick={() => setView('weekly')}   label="Weekly mix" />
       </div>
 
-      {view === 'sessions'
-        ? <SessionsList data={data} onPickDate={setPickedDate} />
-        : <ClimbsList data={data} onRemove={(style, id) => actions.removeGradeAttempt(style, id)} />}
+      {view === 'sessions' && <SessionsList data={data} onPickDate={setPickedDate} />}
+      {view === 'climbs'   && <ClimbsList data={data} onRemove={(style, id) => actions.removeGradeAttempt(style, id)} />}
+      {view === 'weekly'   && <WeeklyMixList data={data} />}
 
       <DayDetailSheet open={!!pickedDate} date={pickedDate} onClose={() => setPickedDate(null)} />
     </div>
@@ -214,6 +216,161 @@ function ResultChip({ result }) {
     result === 'complete' ? { c: 'text-orange-400',  i: '✓' } :
                             { c: 'text-zinc-500',    i: '✗' };
   return <span className={`text-sm ${cfg.c} flex-shrink-0`}>{cfg.i}</span>;
+}
+
+// -------- Weekly mix — one row per week, three-bucket split per style --------
+// Weeks are keyed by weekId (Monday date YYYY-MM-DD). Bucketing uses the
+// user's CURRENT flash grade for both styles — historical accuracy would
+// need per-week flash history we don't store. The trend still reads clearly:
+// counts and ratios shift as the mix changes, and the on-target hint
+// reflects whether that week matched Bechtel/Hörst.
+function WeeklyMixList({ data }) {
+  const weeks = useMemo(() => aggregateWeekly(data), [data]);
+  if (weeks.length === 0) {
+    return (
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-8 text-center text-sm text-zinc-400">
+        No climbs logged yet. Track a few sessions and this fills in.
+      </div>
+    );
+  }
+  return (
+    <>
+      <div className="text-[10px] text-zinc-500 mb-2 leading-tight">
+        Buckets scored against your current flash — {data.flashTR} TR · {data.flashBoulder} boulder.
+        Focus = at flash, Moderate = below, Stretch = above. Target: 60-70 / 20-30 / 5-10%.
+      </div>
+      <ul className="space-y-2">
+        {weeks.map((w) => (
+          <li key={w.weekId} className="bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-3">
+            <div className="flex items-baseline justify-between mb-2">
+              <div className="text-sm font-medium text-zinc-100">{w.range}</div>
+              <div className="text-[10px] text-zinc-500 tabular-nums">{w.total} climb{w.total === 1 ? '' : 's'}</div>
+            </div>
+
+            <WeeklyRow label="TR" accent="sky" stats={w.tr} />
+            <WeeklyRow label="Boulder" accent="fuchsia" stats={w.bo} />
+
+            <div className="mt-2 flex items-center justify-between text-[10px]">
+              <span className="text-zinc-500">
+                Drills: <span className="tabular-nums text-zinc-300">{w.drillCount}/5</span>
+              </span>
+              <span className={
+                w.hint === 'on-target' ? 'text-emerald-400' :
+                w.hint === 'more-focus' ? 'text-amber-400' :
+                w.hint === 'ease-focus' ? 'text-rose-400' :
+                                          'text-zinc-500'
+              }>
+                {w.hintText}
+              </span>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
+function WeeklyRow({ label, accent, stats }) {
+  const dotClass = accent === 'sky' ? 'bg-sky-400' : 'bg-fuchsia-400';
+  return (
+    <div className="flex items-center gap-2 text-xs py-0.5">
+      <span className={`w-1.5 h-1.5 rounded-full ${dotClass} flex-shrink-0`} />
+      <span className="w-14 text-zinc-500 uppercase tracking-wide text-[10px]">{label}</span>
+      <div className="flex-1 flex items-center gap-2 tabular-nums text-zinc-300">
+        <BucketPill n={stats.focus}    pct={stats.focusPct}    color="orange" />
+        <BucketPill n={stats.moderate} pct={stats.moderatePct} color="sky" />
+        <BucketPill n={stats.stretch}  pct={stats.stretchPct}  color="rose" />
+      </div>
+    </div>
+  );
+}
+
+function BucketPill({ n, pct, color }) {
+  const c =
+    color === 'orange' ? 'text-orange-300' :
+    color === 'sky'    ? 'text-sky-300'    :
+                         'text-rose-300';
+  return (
+    <span className="flex-1 min-w-0">
+      <span className={`font-bold ${c}`}>{n}</span>
+      <span className="text-[9px] text-zinc-500 ml-1">({pct}%)</span>
+    </span>
+  );
+}
+
+function aggregateWeekly(data) {
+  const trAtt = data.grades?.toprope?.attempts || [];
+  const boAtt = data.grades?.boulder?.attempts || [];
+  const flashTR = data.flashTR;
+  const flashBo = data.flashBoulder;
+  const trFlashOrd = ordinalOf('toprope', flashTR);
+  const boFlashOrd = ordinalOf('boulder', flashBo);
+
+  const weekMap = {};
+  const bucketize = (a, style, flashOrd, weekBucket) => {
+    const o = ordinalOf(style, a.grade);
+    if (o < 0) return;
+    if (o === flashOrd) weekBucket.focus++;
+    else if (o < flashOrd) weekBucket.moderate++;
+    else weekBucket.stretch++;
+  };
+
+  for (const a of trAtt) {
+    if (!a.weekId) continue;
+    if (!weekMap[a.weekId]) weekMap[a.weekId] = newWeek(a.weekId);
+    bucketize(a, 'toprope', trFlashOrd, weekMap[a.weekId].tr);
+    if (a.drillFocus) weekMap[a.weekId].drills.add(a.drillFocus);
+  }
+  for (const a of boAtt) {
+    if (!a.weekId) continue;
+    if (!weekMap[a.weekId]) weekMap[a.weekId] = newWeek(a.weekId);
+    bucketize(a, 'boulder', boFlashOrd, weekMap[a.weekId].bo);
+    if (a.drillFocus) weekMap[a.weekId].drills.add(a.drillFocus);
+  }
+
+  return Object.values(weekMap)
+    .map(finalizeWeek)
+    .sort((a, b) => b.weekId.localeCompare(a.weekId));
+}
+
+function newWeek(weekId) {
+  return {
+    weekId,
+    tr: { focus: 0, moderate: 0, stretch: 0 },
+    bo: { focus: 0, moderate: 0, stretch: 0 },
+    drills: new Set(),
+  };
+}
+
+function finalizeWeek(w) {
+  const pct = (s) => {
+    const t = s.focus + s.moderate + s.stretch;
+    return {
+      ...s,
+      focusPct:    t ? Math.round(100 * s.focus    / t) : 0,
+      moderatePct: t ? Math.round(100 * s.moderate / t) : 0,
+      stretchPct:  t ? Math.round(100 * s.stretch  / t) : 0,
+    };
+  };
+  const tr = pct(w.tr);
+  const bo = pct(w.bo);
+  const total = tr.focus + tr.moderate + tr.stretch + bo.focus + bo.moderate + bo.stretch;
+  // Coaching hint uses combined focus %.
+  const combinedTotal = total;
+  const combinedFocus = tr.focus + bo.focus;
+  const focusPct = combinedTotal ? (combinedFocus / combinedTotal) * 100 : 0;
+  let hint = 'idle', hintText = '';
+  if (combinedTotal > 0) {
+    if (focusPct < 15)      { hint = 'more-focus'; hintText = '↑ more focus reps'; }
+    else if (focusPct > 40) { hint = 'ease-focus'; hintText = '↓ ease flash volume'; }
+    else                    { hint = 'on-target';  hintText = 'On target ✓'; }
+  }
+  // Human-readable date range for the week
+  const [y, m, d] = w.weekId.split('-').map(Number);
+  const start = new Date(y, m - 1, d, 12);
+  const end = new Date(start); end.setDate(end.getDate() + 6);
+  const fmt = (dd) => dd.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  return { ...w, tr, bo, total, drillCount: w.drills.size, hint, hintText, range: `${fmt(start)} – ${fmt(end)}` };
 }
 
 // --------- helpers ---------
