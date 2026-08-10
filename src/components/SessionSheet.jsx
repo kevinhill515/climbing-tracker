@@ -1,25 +1,20 @@
 import Sheet from './Sheet.jsx';
 import ExerciseSheet from './ExerciseSheet.jsx';
-import AntagonistSheet from './AntagonistSheet.jsx';
 import { getExercise } from '../data/exercises.js';
-import { SESSION_META, ANTAGONIST_ITEMS } from '../data/program.js';
+import { SESSION_META } from '../data/program.js';
 import { useStore } from '../store.jsx';
 import { weekId, today } from '../utils/dates.js';
 import { useMemo, useState } from 'react';
 
 const TODAY = today;
 
-// The main session flow. Lists the phase's session steps in order,
-// each with a tap-to-log ExerciseSheet. Also carries antagonist as a
-// separate collapsible section on Sessions 1 and 3.
+// The main session flow — steps in order, each opens ExerciseSheet with
+// detailed how-to + quick log. Session 4 (full-body / antagonist) uses
+// this same shell — its steps are the antagonist / legs / core exercises.
 export default function SessionSheet({ open, onClose, sessionType, phase }) {
   const { actions, data } = useStore();
-  const [exerciseOpen, setExerciseOpen] = useState(null);   // { id, prescription }
-  const [antagOpen, setAntagOpen] = useState(false);
+  const [exerciseOpen, setExerciseOpen] = useState(null);
 
-  // ⚠ All hooks must run every render. Compute these unconditionally,
-  // THEN early-return. Otherwise the sheet crashes to a black screen the
-  // first time it's opened (hook count changes between renders).
   const todayStr = TODAY();
   const todayCounts = useMemo(() => {
     const m = {};
@@ -30,10 +25,6 @@ export default function SessionSheet({ open, onClose, sessionType, phase }) {
     }
     return m;
   }, [data?.logs, todayStr, sessionType]);
-
-  const antagCountToday = useMemo(() => {
-    return ANTAGONIST_ITEMS.filter((it) => (todayCounts[it.ex] || 0) > 0).length;
-  }, [todayCounts]);
 
   if (!sessionType || !phase) return null;
   const session = phase.sessions[sessionType];
@@ -95,31 +86,6 @@ export default function SessionSheet({ open, onClose, sessionType, phase }) {
             })}
           </div>
 
-          {/* Antagonist training — separate module attached to Sessions 1 and 3 */}
-          {session.antagonist && (
-            <button
-              onClick={() => setAntagOpen(true)}
-              className={`w-full text-left bg-zinc-800/50 hover:bg-zinc-800 border-2 border-dashed rounded-xl p-3 transition ${antagCountToday >= ANTAGONIST_ITEMS.length ? 'border-orange-500/40' : 'border-zinc-700'}`}
-            >
-              <div className="flex items-start gap-3">
-                <span className="mt-0.5 inline-flex w-6 h-6 rounded-full bg-violet-500/20 text-violet-300 text-[11px] items-center justify-center flex-shrink-0">
-                  ⊥
-                </span>
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-zinc-100">Antagonist training</div>
-                  <div className="text-xs text-zinc-400 mt-0.5">
-                    Push-ups, external rotation, wrist ext + reverse wrist curl · 2×/week
-                  </div>
-                </div>
-                {antagCountToday > 0 && (
-                  <span className="text-xs text-orange-300 bg-orange-500/15 border border-orange-500/30 rounded-full px-2 py-0.5 flex-shrink-0">
-                    ✓ {antagCountToday}/{ANTAGONIST_ITEMS.length}
-                  </span>
-                )}
-              </div>
-            </button>
-          )}
-
           {/* Bottom action */}
           {!isDone ? (
             <button
@@ -143,12 +109,6 @@ export default function SessionSheet({ open, onClose, sessionType, phase }) {
         prescription={exerciseOpen?.prescription}
         sessionType={sessionType}
         onClose={() => setExerciseOpen(null)}
-      />
-
-      <AntagonistSheet
-        open={antagOpen}
-        onClose={() => setAntagOpen(false)}
-        sessionType={sessionType}
       />
     </>
   );

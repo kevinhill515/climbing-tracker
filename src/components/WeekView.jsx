@@ -13,6 +13,7 @@ const COLOR_MAP = {
   orange:  'bg-orange-500/15 text-orange-300 border-orange-500/30',
   amber:   'bg-amber-500/15 text-amber-300 border-amber-500/30',
   rose:    'bg-rose-500/15 text-rose-300 border-rose-500/30',
+  violet:  'bg-violet-500/15 text-violet-300 border-violet-500/30',
 };
 
 export default function WeekView() {
