@@ -48,6 +48,21 @@ export function resolveGrade(style, base, offset) {
   return arr[Math.max(0, Math.min(arr.length - 1, i + offset))];
 }
 
+/** Flash grade that was current on or before `dateStr` (YYYY-MM-DD) for
+ *  the given style. Powers historical bucketing in the Weekly mix view —
+ *  a climb logged 6 weeks ago is bucketed against the flash from THAT
+ *  week, not today's. Returns null if history has no entry that early. */
+export function flashAt(history, style, dateStr) {
+  if (!Array.isArray(history) || history.length === 0) return null;
+  let best = null;
+  for (const h of history) {
+    if (h.style !== style) continue;
+    if (h.date > dateStr) continue;
+    if (!best || h.date > best.date) best = h;
+  }
+  return best?.grade || null;
+}
+
 /** Colour bucket for a grade — used to tint the badge in the UI. Rough
  *  aggregate difficulty so the pill's colour tells you at a glance. */
 export function tintFor(style, grade) {

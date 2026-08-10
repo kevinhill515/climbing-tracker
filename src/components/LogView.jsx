@@ -1,7 +1,7 @@
 import { useStore } from '../store.jsx';
 import { useMemo, useState } from 'react';
 import DayDetailSheet from './DayDetailSheet.jsx';
-import { gradesFor, ordinalOf, STYLE_LABELS } from '../data/grades.js';
+import { gradesFor, ordinalOf, STYLE_LABELS, flashAt } from '../data/grades.js';
 
 // Log tab — everything logged, three views:
 //   Sessions:    day-by-day list (was the old HistoryView)
@@ -220,10 +220,9 @@ function ResultChip({ result }) {
 
 // -------- Weekly mix — one row per week, three-bucket split per style --------
 // Weeks are keyed by weekId (Monday date YYYY-MM-DD). Bucketing uses the
-// user's CURRENT flash grade for both styles — historical accuracy would
-// need per-week flash history we don't store. The trend still reads clearly:
-// counts and ratios shift as the mix changes, and the on-target hint
-// reflects whether that week matched Bechtel/Hörst.
+// flash grade that was CURRENT at the end of that week (from flashHistory)
+// so past weeks reflect the level you were actually at then. Bumping your
+// flash today doesn't retroactively re-classify last month's climbs.
 function WeeklyMixList({ data }) {
   const weeks = useMemo(() => aggregateWeekly(data), [data]);
   if (weeks.length === 0) {
@@ -236,15 +235,20 @@ function WeeklyMixList({ data }) {
   return (
     <>
       <div className="text-[10px] text-zinc-500 mb-2 leading-tight">
-        Buckets scored against your current flash — {data.flashTR} TR · {data.flashBoulder} boulder.
-        Focus = at flash, Moderate = below, Stretch = above. Target: 60-70 / 20-30 / 5-10%.
+        Buckets scored against the flash grade you had at that week — historical, not retroactive.
+        Focus = at flash · Moderate = below · Stretch = above. Target: 60-70 / 20-30 / 5-10%.
       </div>
       <ul className="space-y-2">
         {weeks.map((w) => (
           <li key={w.weekId} className="bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-3">
             <div className="flex items-baseline justify-between mb-2">
               <div className="text-sm font-medium text-zinc-100">{w.range}</div>
-              <div className="text-[10px] text-zinc-500 tabular-nums">{w.total} climb{w.total === 1 ? '' : 's'}</div>
+              <div className="text-[10px] text-zinc-500 tabular-nums">
+                {w.total} climb{w.total === 1 ? '' : 's'}
+                <span className="ml-2 text-zinc-600">
+                  · flash <span className="text-emerald-400 tabular-nums">{w.flashTR}</span> / <span className="text-emerald-400 tabular-nums">{w.flashBo}</span>
+                </span>
+              </div>
             </div>
 
             <WeeklyRow label="TR" accent="sky" stats={w.tr} />
@@ -301,13 +305,28 @@ function BucketPill({ n, pct, color }) {
 function aggregateWeekly(data) {
   const trAtt = data.grades?.toprope?.attempts || [];
   const boAtt = data.grades?.boulder?.attempts || [];
-  const flashTR = data.flashTR;
-  const flashBo = data.flashBoulder;
-  const trFlashOrd = ordinalOf('toprope', flashTR);
-  const boFlashOrd = ordinalOf('boulder', flashBo);
+  const history = data.flashHistory || [];
+  // Fallback if history is empty (defensive — ensureShape seeds it, but
+  // very old data hydrated before that logic still needs a safe default).
+  const fallbackTR = data.flashTR;
+  const fallbackBo = data.flashBoulder;
 
   const weekMap = {};
-  const bucketize = (a, style, flashOrd, weekBucket) => {
+  const ensureWeek = (weekId) => {
+    if (weekMap[weekId]) return weekMap[weekId];
+    // Compute week-end (Sunday) to look up historical flash for this week.
+    const [y, m, d] = weekId.split('-').map(Number);
+    const start = new Date(y, m - 1, d, 12);
+    const end = new Date(start); end.setDate(end.getDate() + 6);
+    const endStr = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,'0')}-${String(end.getDate()).padStart(2,'0')}`;
+    const flashTR = flashAt(history, 'toprope', endStr) || fallbackTR;
+    const flashBo = flashAt(history, 'boulder', endStr) || fallbackBo;
+    weekMap[weekId] = newWeek(weekId, flashTR, flashBo);
+    return weekMap[weekId];
+  };
+  const bucketize = (a, style, weekBucket, weekObj) => {
+    const flashGrade = style === 'toprope' ? weekObj.flashTR : weekObj.flashBo;
+    const flashOrd = ordinalOf(style, flashGrade);
     const o = ordinalOf(style, a.grade);
     if (o < 0) return;
     if (o === flashOrd) weekBucket.focus++;
@@ -317,15 +336,15 @@ function aggregateWeekly(data) {
 
   for (const a of trAtt) {
     if (!a.weekId) continue;
-    if (!weekMap[a.weekId]) weekMap[a.weekId] = newWeek(a.weekId);
-    bucketize(a, 'toprope', trFlashOrd, weekMap[a.weekId].tr);
-    if (a.drillFocus) weekMap[a.weekId].drills.add(a.drillFocus);
+    const w = ensureWeek(a.weekId);
+    bucketize(a, 'toprope', w.tr, w);
+    if (a.drillFocus) w.drills.add(a.drillFocus);
   }
   for (const a of boAtt) {
     if (!a.weekId) continue;
-    if (!weekMap[a.weekId]) weekMap[a.weekId] = newWeek(a.weekId);
-    bucketize(a, 'boulder', boFlashOrd, weekMap[a.weekId].bo);
-    if (a.drillFocus) weekMap[a.weekId].drills.add(a.drillFocus);
+    const w = ensureWeek(a.weekId);
+    bucketize(a, 'boulder', w.bo, w);
+    if (a.drillFocus) w.drills.add(a.drillFocus);
   }
 
   return Object.values(weekMap)
@@ -333,9 +352,11 @@ function aggregateWeekly(data) {
     .sort((a, b) => b.weekId.localeCompare(a.weekId));
 }
 
-function newWeek(weekId) {
+function newWeek(weekId, flashTR, flashBo) {
   return {
     weekId,
+    flashTR,
+    flashBo,
     tr: { focus: 0, moderate: 0, stretch: 0 },
     bo: { focus: 0, moderate: 0, stretch: 0 },
     drills: new Set(),

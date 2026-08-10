@@ -22,6 +22,11 @@ const DEFAULT_DATA = () => ({
   // the user consolidates a grade — the whole program updates in one place.
   flashTR: '5.10a',
   flashBoulder: 'V2',
+  // Append-only history of flash-grade changes. Used by the Weekly mix
+  // view to bucket past weeks against the flash that was CURRENT at
+  // week-end (not today's flash). Format: [{ date: 'YYYY-MM-DD', style, grade }]
+  // ensureShape() seeds an initial entry dated startDate when empty.
+  flashHistory: [],
 
   // Per-week completion tags — same shape as calisthenics: keyed by
   // Saturday-of-week YYYY-MM-DD. Values map session type → true.
@@ -129,6 +134,15 @@ function ensureShape(data) {
     toprope: { ...DEFAULT_DATA().grades.toprope, ...(data?.grades?.toprope || {}) },
   };
   d.milestones = { ...DEFAULT_DATA().milestones, ...(data?.milestones || {}) };
+  // Seed flashHistory when missing so past weeks have a reference grade —
+  // otherwise flashAt() returns null for any week before the first bump.
+  if (!Array.isArray(d.flashHistory) || d.flashHistory.length === 0) {
+    const seedDate = d.startDate || '2020-01-01';
+    d.flashHistory = [
+      { date: seedDate, style: 'toprope', grade: d.flashTR },
+      { date: seedDate, style: 'boulder', grade: d.flashBoulder },
+    ];
+  }
   return migrateSessionKeys(d);
 }
 
@@ -433,12 +447,20 @@ export function StoreProvider({ children }) {
   const setStartDate = useCallback((iso) => patch((d) => ({ ...d, startDate: iso })), [patch]);
 
   // Adaptive flash — flows into Phase 1 stepsFor(state) so warmup/ARC/stretch
-  // grades update everywhere in one place.
+  // grades update everywhere in one place. Also appends to flashHistory
+  // so the Weekly mix view can bucket past weeks against the flash that
+  // was current at that time.
   const setFlashGrade = useCallback((style, grade) => {
-    patch((d) => ({
-      ...d,
-      [style === 'boulder' ? 'flashBoulder' : 'flashTR']: grade,
-    }));
+    patch((d) => {
+      const field = style === 'boulder' ? 'flashBoulder' : 'flashTR';
+      if (d[field] === grade) return d; // no-op if unchanged
+      const history = Array.isArray(d.flashHistory) ? d.flashHistory : [];
+      return {
+        ...d,
+        [field]: grade,
+        flashHistory: [...history, { date: TODAY(), style, grade }],
+      };
+    });
   }, [patch]);
 
   const forceRestoreFromCloud = useCallback(async () => {
