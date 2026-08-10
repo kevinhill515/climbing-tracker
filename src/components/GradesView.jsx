@@ -19,7 +19,9 @@ import { fmtDate, parseDate } from '../utils/dates.js';
 export default function GradesView() {
   const { data, actions } = useStore();
   const [logStyle, setLogStyle] = useState(null);
-  const [boulderOpen, setBoulderOpen] = useState(false);
+  // Boulder card starts expanded — there's room, and having the flash
+  // bumper visible without a click matches the TR card.
+  const [boulderOpen, setBoulderOpen] = useState(true);
 
   if (!data) return null;
 

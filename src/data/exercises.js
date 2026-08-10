@@ -1,6 +1,74 @@
 // Exercise dictionary for the climbing program — a real coach's toolkit
 // oriented for a top-rope climber with 5.12d as the north star.
 
+// Shared drill explanations — rendered at the bottom of ClimbLogSheet
+// whenever an exercise exposes `drillOptions`. Extracted from movement-drill
+// so boulder-cooldown / boulder-block (where you can ALSO drill patterns on
+// easier problems) don't have to duplicate the text.
+export const DRILL_EXPLANATIONS =
+  "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+  "1. SILENT FEET\n" +
+  "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+  "WHAT: Climb without a single audible foot placement. No scraping, no shuffling, no re-adjusting.\n" +
+  "HOW: Look at the hold BEFORE moving your foot. Aim for the sweet spot (big toe or outside edge). Place the shoe softly — imagine putting it down without waking a baby.\n" +
+  "FEELING: You feel exactly where your foot contacts. If it slips, you know why.\n" +
+  "MISTAKE: Rushing. Looking at hands, not feet. Using arch of the shoe (never — use the toe or outside edge).\n" +
+  "SUCCESS: 30 seconds of climbing without a single scrape.\n\n" +
+
+  "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+  "2. DROP KNEE\n" +
+  "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+  "WHAT: On side-pull holds, rotate your inside knee DOWN and inward toward the floor.\n" +
+  "HOW: One foot on a hold. Twist your same-side hip to face the wall. The knee drops toward the ground. Your foot ends up on its outside edge.\n" +
+  "FEELING: Hip presses INTO the wall. Weight shifts onto the outside edge. Your arm can now be nearly straight to reach — you're locked off from the hips, not the biceps.\n" +
+  "MISTAKE: Rotating from the shoulder instead of the hip. Not committing to the drop (half-drop = no benefit).\n" +
+  "SUCCESS: A drop knee extends your reach 6-8 inches without extra strength.\n\n" +
+
+  "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+  "3. FLAG\n" +
+  "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+  "WHAT: When one leg has no hold, extend it out (behind, across, or forward) for counterbalance.\n" +
+  "HOW: Recognize the barn-door — you're about to swing OUT from the wall because your weight is one-sided. BEFORE swinging, extend the free leg opposite the pulling side.\n" +
+  "FEELING: You stay flat against the wall instead of rotating off it. Body is a straight line, foot as counterweight.\n" +
+  "MISTAKE: Flagging LATE — after you've already started swinging. Flagging on the wrong side.\n" +
+  "SUCCESS: You can pull on a side-hold with NO foot on the same side and stay flush to the wall.\n\n" +
+
+  "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+  "4. HAND-FOOT MATCH\n" +
+  "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+  "WHAT: Step your foot on the SAME hold your hand is holding, then move that hand off.\n" +
+  "HOW: Recognize when a hand-hold is also big enough for a foot. Weight the hand, place foot next to it, transfer weight to foot, remove hand.\n" +
+  "FEELING: Smooth transfer, no wobble. Foot fills the exact space the hand just left.\n" +
+  "MISTAKE: Stepping onto the tiny 'nose' of the hold when there's a better spot. Losing balance during the transition.\n" +
+  "SUCCESS: You can hand-foot match on any large hold without pause.\n\n" +
+
+  "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+  "5. OUTSIDE EDGE / HIP-IN\n" +
+  "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+  "WHAT: On side-pull holds, turn your inside hip toward the wall. Use the OUTSIDE of your foot on the hold.\n" +
+  "HOW: Instead of squaring off to the wall (hands on side pulls, chest facing out), rotate 45-90° so your hip is pressing into the wall. Foot rotates with you — outside edge on the hold.\n" +
+  "FEELING: Elbow drops. Arm goes straight. Hip and shoulder are in a plane with the wall. Reach comes from the hip rotation, not the arm pull.\n" +
+  "MISTAKE: Not committing to the rotation (half-turn = no lock-off). Using inside edge (foot then slips as you rotate).\n" +
+  "SUCCESS: Side pulls feel like straight-arm reaches, not pull-ups. Your forearm burn drops noticeably.\n\n" +
+
+  "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+  "BONUS: STRAIGHT-ARM RESTS + BREATHING\n" +
+  "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+  "Once the 5 above feel decent, layer these into your climbing:\n" +
+  "- Between moves, ACTIVELY straighten your arms — hang on the skeleton, not the muscles.\n" +
+  "- Slow steady breaths — exhale on the pull, inhale on the reset. If you catch yourself holding your breath, that's the panic response and it doubles your pump rate.";
+
+// Standard drill picker options — every exercise where drilling makes sense
+// (movement-drill on TR, boulder-cooldown / boulder-block on the boulders)
+// references this list so the pattern set stays consistent.
+export const STANDARD_DRILL_OPTIONS = [
+  { key: 'silent-feet',      label: 'Silent feet' },
+  { key: 'drop-knee',        label: 'Drop knee' },
+  { key: 'flag',             label: 'Flag' },
+  { key: 'hand-foot-match',  label: 'Hand-foot match' },
+  { key: 'outside-edge',     label: 'Outside edge / hip-in' },
+];
+
 export const EXERCISES = {
   // ============ WARM-UPS ============
   // Category flags:
@@ -144,68 +212,14 @@ export const EXERCISES = {
   'movement-drill': {
     style: 'toprope',
     name: 'Movement drill (pick ONE per session)',
-    // Drill options shown in ClimbLogSheet as a picker chip row.
-    // Each attempt logs `drillFocus: <key>` for future analytics + display.
-    drillOptions: [
-      { key: 'silent-feet',      label: 'Silent feet' },
-      { key: 'drop-knee',        label: 'Drop knee' },
-      { key: 'flag',             label: 'Flag' },
-      { key: 'hand-foot-match',  label: 'Hand-foot match' },
-      { key: 'outside-edge',     label: 'Outside edge / hip-in' },
-    ],
+    // Drill picker chip row lives in ClimbLogSheet — each attempt logs
+    // drillFocus: <key>. Drill explanations render at the bottom via the
+    // shared DRILL_EXPLANATIONS constant (also referenced from boulder
+    // exercises that expose drillOptions).
+    drillOptions: STANDARD_DRILL_OPTIONS,
     cue:
       "Pick ONE of these each session and drill it deep for 15-20 min on 2-3 easy routes. Rotate weekly — the goal is to make each pattern automatic.\n\n" +
-      "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
-      "1. SILENT FEET\n" +
-      "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
-      "WHAT: Climb without a single audible foot placement. No scraping, no shuffling, no re-adjusting.\n" +
-      "HOW: Look at the hold BEFORE moving your foot. Aim for the sweet spot (big toe or outside edge). Place the shoe softly — imagine putting it down without waking a baby.\n" +
-      "FEELING: You feel exactly where your foot contacts. If it slips, you know why.\n" +
-      "MISTAKE: Rushing. Looking at hands, not feet. Using arch of the shoe (never — use the toe or outside edge).\n" +
-      "SUCCESS: 30 seconds of climbing without a single scrape.\n\n" +
-
-      "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
-      "2. DROP KNEE\n" +
-      "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
-      "WHAT: On side-pull holds, rotate your inside knee DOWN and inward toward the floor.\n" +
-      "HOW: One foot on a hold. Twist your same-side hip to face the wall. The knee drops toward the ground. Your foot ends up on its outside edge.\n" +
-      "FEELING: Hip presses INTO the wall. Weight shifts onto the outside edge. Your arm can now be nearly straight to reach — you're locked off from the hips, not the biceps.\n" +
-      "MISTAKE: Rotating from the shoulder instead of the hip. Not committing to the drop (half-drop = no benefit).\n" +
-      "SUCCESS: A drop knee extends your reach 6-8 inches without extra strength.\n\n" +
-
-      "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
-      "3. FLAG\n" +
-      "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
-      "WHAT: When one leg has no hold, extend it out (behind, across, or forward) for counterbalance.\n" +
-      "HOW: Recognize the barn-door — you're about to swing OUT from the wall because your weight is one-sided. BEFORE swinging, extend the free leg opposite the pulling side.\n" +
-      "FEELING: You stay flat against the wall instead of rotating off it. Body is a straight line, foot as counterweight.\n" +
-      "MISTAKE: Flagging LATE — after you've already started swinging. Flagging on the wrong side.\n" +
-      "SUCCESS: You can pull on a side-hold with NO foot on the same side and stay flush to the wall.\n\n" +
-
-      "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
-      "4. HAND-FOOT MATCH\n" +
-      "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
-      "WHAT: Step your foot on the SAME hold your hand is holding, then move that hand off.\n" +
-      "HOW: Recognize when a hand-hold is also big enough for a foot. Weight the hand, place foot next to it, transfer weight to foot, remove hand.\n" +
-      "FEELING: Smooth transfer, no wobble. Foot fills the exact space the hand just left.\n" +
-      "MISTAKE: Stepping onto the tiny 'nose' of the hold when there's a better spot. Losing balance during the transition.\n" +
-      "SUCCESS: You can hand-foot match on any large hold without pause.\n\n" +
-
-      "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
-      "5. OUTSIDE EDGE / HIP-IN\n" +
-      "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
-      "WHAT: On side-pull holds, turn your inside hip toward the wall. Use the OUTSIDE of your foot on the hold.\n" +
-      "HOW: Instead of squaring off to the wall (hands on side pulls, chest facing out), rotate 45-90° so your hip is pressing into the wall. Foot rotates with you — outside edge on the hold.\n" +
-      "FEELING: Elbow drops. Arm goes straight. Hip and shoulder are in a plane with the wall. Reach comes from the hip rotation, not the arm pull.\n" +
-      "MISTAKE: Not committing to the rotation (half-turn = no lock-off). Using inside edge (foot then slips as you rotate).\n" +
-      "SUCCESS: Side pulls feel like straight-arm reaches, not pull-ups. Your forearm burn drops noticeably.\n\n" +
-
-      "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
-      "BONUS: STRAIGHT-ARM RESTS + BREATHING\n" +
-      "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
-      "Once the 5 above feel decent, layer these into your climbing:\n" +
-      "- Between moves, ACTIVELY straighten your arms — hang on the skeleton, not the muscles.\n" +
-      "- Slow steady breaths — exhale on the pull, inhale on the reset. If you catch yourself holding your breath, that's the panic response and it doubles your pump rate.",
+      "Full drill breakdowns below.",
     why:
       "Movement drills are the highest-leverage training you can do at your level. Named patterns become 'moves in your vocabulary' — the more you rehearse them deliberately, the more your body picks them automatically when a real climb calls for them.",
   },
@@ -255,10 +269,15 @@ export const EXERCISES = {
   'boulder-cooldown': {
     style: 'boulder',
     name: 'Boulder cool-down',
+    // Optional drill focus — even light cool-down boulders are a chance
+    // to rehearse a movement pattern. Picker renders in ClimbLogSheet,
+    // drill explanations at the bottom.
+    drillOptions: STANDARD_DRILL_OPTIONS,
     cue:
-      "2-3 easy boulders (V0-V1) at the end of a TR-focused session. Flow only — no hard moves, no deep crimping. Light pulling in a different body position to close out the day.",
+      "2-3 easy boulders (V0-V1) at the end of a TR-focused session. Flow only — no hard moves, no deep crimping. Light pulling in a different body position to close out the day.\n\n" +
+      "OPTIONAL: pick a drill focus (silent feet, flag, drop knee…) — easy grades are the best place to make a pattern automatic. Full drill breakdowns below.",
     why:
-      "Complementary movement without added pump. Also a fun way to end an endurance day so it doesn't feel like a slog.",
+      "Complementary movement without added pump. Also a fun way to end an endurance day so it doesn't feel like a slog. Doubles as drill-time when the grades are easy enough that you have brain-space for pattern work.",
   },
   'tr-cooldown': {
     style: 'toprope',
@@ -330,10 +349,14 @@ export const EXERCISES = {
   'boulder-block': {
     style: 'boulder',
     name: 'Bouldering block',
+    // Optional drill focus — even during power work, a movement pattern
+    // that's already dialed will show up on cruxes. Picker in ClimbLogSheet.
+    drillOptions: STANDARD_DRILL_OPTIONS,
     cue:
-      "30-45 min of focused bouldering on problems at or slightly above your flash boulder grade (V2-V4 for you). Rest generously between attempts (3-5 min). This is POWER work, not volume — quality attempts, not many.",
+      "30-45 min of focused bouldering on problems at or slightly above your flash boulder grade (V2-V4 for you). Rest generously between attempts (3-5 min). This is POWER work, not volume — quality attempts, not many.\n\n" +
+      "OPTIONAL: pick a drill focus if there's a pattern you're actively grooving (drop knee, flag, hip-in). Bouldering is the highest-leverage place to install movement because the cruxes are compressed — 4 moves that DEMAND the pattern. Full drill breakdowns below.",
     why:
-      "Bouldering trains max power in a way top rope can't. Short intense pulls = better neural recruitment. This is where the strength for hard route cruxes actually comes from.",
+      "Bouldering trains max power in a way top rope can't. Short intense pulls = better neural recruitment. This is where the strength for hard route cruxes actually comes from — and where movement patterns become non-negotiable.",
   },
   'hangboard-repeaters': {
     checkOnly: true,

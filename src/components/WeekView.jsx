@@ -76,7 +76,8 @@ export default function WeekView() {
         </div>
       </div>
 
-      <WeeklyScorecard data={data} wid={wid} />
+      <WeeklyScorecard data={data} wid={wid} style="toprope" />
+      <WeeklyScorecard data={data} wid={wid} style="boulder" />
 
       {/* Session cards — the 3 target protocol sessions per week */}
       <div className="space-y-2.5">
@@ -172,29 +173,40 @@ export default function WeekView() {
 
 // Weekly scorecard — what actually happened this week, broken out by the
 // Bechtel/Hörst intensity buckets so you can see the mix at a glance.
+// Runs per-style (toprope / boulder) — one card each.
 //
-//   Focus reps    = TR attempts at current flash grade (efficiency work)
-//   Moderate      = TR attempts 2-3 grades below flash (ARC + warmup)
-//   Stretch       = TR attempts above flash (stretch attempts / real projecting)
-//   Boulders      = all boulder attempts this week
-//   Drills        = unique drill keys practiced this week (silent-feet, drop-knee, …)
-function WeeklyScorecard({ data, wid }) {
-  const flashTR = data.flashTR;
+//   Focus reps    = attempts at current flash grade (efficiency / limit work)
+//   Moderate      = attempts below flash (ARC + warmup + volume)
+//   Stretch       = attempts above flash (stretch attempts / real projecting)
+//   Drills        = unique drill keys practiced this week (both styles combined —
+//                   drills carry over, only shown on the TR card to avoid
+//                   double-counting)
+function WeeklyScorecard({ data, wid, style }) {
+  const isTR = style === 'toprope';
+  const flash = isTR ? data.flashTR : data.flashBoulder;
+  const label = isTR ? 'Top rope' : 'Boulder';
+  const styleAccent = isTR ? 'sky' : 'fuchsia';
+
   const stats = useMemo(() => {
-    const trAttempts = (data.grades?.toprope?.attempts || []).filter((a) => a.weekId === wid);
-    const boAttempts = (data.grades?.boulder?.attempts || []).filter((a) => a.weekId === wid);
-    const flashOrd = ordinalOf('toprope', flashTR);
+    const attempts = (data.grades?.[style]?.attempts || []).filter((a) => a.weekId === wid);
+    const flashOrd = ordinalOf(style, flash);
     let focus = 0, moderate = 0, stretch = 0;
     const drills = new Set();
-    for (const a of trAttempts) {
-      const o = ordinalOf('toprope', a.grade);
+    for (const a of attempts) {
+      const o = ordinalOf(style, a.grade);
       if (o < 0) continue;
       if (o === flashOrd) focus++;
       else if (o < flashOrd) moderate++;
       else stretch++;
       if (a.drillFocus) drills.add(a.drillFocus);
     }
-    // Bechtel/Hörst target ratios — reference for the UI hint
+    // Also count drills logged on the OTHER style so the TR card shows
+    // the true weekly drill count (drills happen on both).
+    if (isTR) {
+      for (const a of (data.grades?.boulder?.attempts || [])) {
+        if (a.weekId === wid && a.drillFocus) drills.add(a.drillFocus);
+      }
+    }
     const total = focus + moderate + stretch;
     const focusPct    = total ? Math.round((focus    / total) * 100) : 0;
     const moderatePct = total ? Math.round((moderate / total) * 100) : 0;
@@ -203,21 +215,27 @@ function WeeklyScorecard({ data, wid }) {
       focus, moderate, stretch,
       focusPct, moderatePct, stretchPct,
       total,
-      boulders: boAttempts.length,
       drills: drills.size,
     };
-  }, [data.grades, wid, flashTR]);
+  }, [data.grades, wid, style, flash, isTR]);
+
+  const styleChipClass =
+    styleAccent === 'sky' ? 'text-sky-300 bg-sky-500/15 border-sky-500/30'
+                          : 'text-fuchsia-300 bg-fuchsia-500/15 border-fuchsia-500/30';
 
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden mb-4">
       <div className="px-4 py-2.5 border-b border-zinc-800 flex items-center justify-between">
-        <div className="text-xs uppercase tracking-wide text-zinc-400 font-medium">This week</div>
-        <div className="text-[10px] text-zinc-500">flash: <span className="text-emerald-300 tabular-nums">{flashTR}</span></div>
+        <div className="flex items-center gap-2">
+          <span className={`text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded border ${styleChipClass}`}>{label}</span>
+          <div className="text-xs uppercase tracking-wide text-zinc-400 font-medium">This week</div>
+        </div>
+        <div className="text-[10px] text-zinc-500">flash: <span className="text-emerald-300 tabular-nums">{flash}</span></div>
       </div>
       <div className="p-3 grid grid-cols-3 gap-2">
         <StatBox
           label="Focus reps"
-          hint={`@ ${flashTR}`}
+          hint={`@ ${flash}`}
           value={stats.focus}
           pct={stats.focusPct}
           targetPct="20-30%"
@@ -240,10 +258,11 @@ function WeeklyScorecard({ data, wid }) {
           accent="rose"
         />
       </div>
-      <div className="px-3 pb-3 grid grid-cols-2 gap-2">
-        <MiniStat label="Boulders" value={stats.boulders} />
-        <MiniStat label="Drills practiced" value={stats.drills > 0 ? `${stats.drills} of 5` : '0'} />
-      </div>
+      {isTR && (
+        <div className="px-3 pb-3">
+          <MiniStat label="Drills practiced (both styles)" value={stats.drills > 0 ? `${stats.drills} of 5` : '0'} />
+        </div>
+      )}
       {stats.total > 0 && (
         <div className="px-4 pb-3 text-[10px] text-zinc-500 leading-tight">
           Bechtel/Hörst mix: 60-70% moderate · 20-30% flash · 5-10% stretch.{' '}

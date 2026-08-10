@@ -1,7 +1,7 @@
 import Sheet from './Sheet.jsx';
 import { useStore } from '../store.jsx';
 import { useEffect, useMemo, useState } from 'react';
-import { getExercise } from '../data/exercises.js';
+import { getExercise, DRILL_EXPLANATIONS } from '../data/exercises.js';
 import { gradesFor } from '../data/grades.js';
 import { today } from '../utils/dates.js';
 
@@ -94,11 +94,13 @@ export default function ClimbLogSheet({
           </span>
         </div>
 
-        {/* Drill picker — only shown if exercise has drillOptions (movement drills) */}
+        {/* Drill picker — shown for any exercise exposing drillOptions.
+            Primary on movement-drill (must pick), optional on boulder
+            exercises (boulder-cooldown, boulder-block). */}
         {drillOptions && drillOptions.length > 0 && (
           <div className="bg-zinc-800/60 border border-zinc-700 rounded-xl p-3">
             <div className="text-[10px] uppercase tracking-wide text-zinc-500 mb-1.5">
-              Drill focus — pick ONE
+              Drill focus {exerciseId === 'movement-drill' ? '— pick ONE' : '(optional)'}
             </div>
             <div className="flex flex-wrap gap-1.5">
               {drillOptions.map((d) => (
@@ -114,7 +116,7 @@ export default function ClimbLogSheet({
               ))}
             </div>
             <div className="mt-2 text-[10px] text-zinc-500">
-              Locked in on each logged climb. See how-to at the bottom for full drill details.
+              Locked in on each logged climb. Full drill breakdowns at the bottom.
             </div>
           </div>
         )}
@@ -251,11 +253,13 @@ export default function ClimbLogSheet({
           Done · {climbsThisSession.length} logged
         </button>
 
-        {/* Explainers at the bottom — reference material, not the main event */}
-        {(cue || ex.why) && (
+        {/* Explainers at the bottom — reference material, not the main event.
+            When drillOptions is present, also append the shared drill
+            breakdowns so users can look up the pattern they're drilling. */}
+        {(cue || ex.why || drillOptions) && (
           <details className="pt-2 border-t border-zinc-800">
             <summary className="text-xs uppercase tracking-wide text-zinc-500 cursor-pointer py-2">
-              How-to · tap to expand
+              How-to {drillOptions ? '+ drill breakdowns ' : ''}· tap to expand
             </summary>
             <div className="space-y-3 pt-2">
               {cue && (
@@ -263,6 +267,16 @@ export default function ClimbLogSheet({
               )}
               {ex.why && (
                 <p className="text-xs text-zinc-400 italic leading-relaxed">{ex.why}</p>
+              )}
+              {drillOptions && drillOptions.length > 0 && (
+                <div className="pt-2 border-t border-zinc-800">
+                  <div className="text-[10px] uppercase tracking-wide text-zinc-500 mb-2">
+                    Drill breakdowns
+                  </div>
+                  <pre className="text-[11px] text-zinc-300 leading-relaxed whitespace-pre-wrap font-sans">
+{DRILL_EXPLANATIONS}
+                  </pre>
+                </div>
               )}
             </div>
           </details>
