@@ -12,7 +12,7 @@ export const EXERCISES = {
   //   neither          → strength / accessory. Uses standard ExerciseSheet.
 
   'warmup-route': {
-    on_wall: true,
+    style: 'toprope',
     name: 'Warm-up route',
     cue:
       "One easy route (5.7 for you right now, or ~3 grades below your flash) — flow it slowly, take controlled rest positions, big breaths. This is the ONE route where nothing hard happens. Save your hard climbing for when you're warm.",
@@ -20,7 +20,7 @@ export const EXERCISES = {
       "Every session starts here. Cold fingers + cold shoulders are the two most reliable ways to end a session with an injury. One easy route wakes up tissue temperature and rehearses movement patterns.",
   },
   'warmup-boulder': {
-    on_wall: true,
+    style: 'boulder',
     name: 'Warm-up boulder',
     cue:
       "One V0 boulder or short traverse (~10 moves). Flow it slowly — the point is to get your fingers and shoulders warm, not to attempt anything.",
@@ -30,56 +30,109 @@ export const EXERCISES = {
   'joint-prep': {
     name: 'Wrist + shoulder prep',
     cue:
-      "5-min joint-wake-up before any climbing. Tick items off as you go — no need to log reps or time here.",
+      "5-min joint-wake-up before any climbing. Tick items off as you go.",
     why:
       "Fingers get 90% of climbing-prep attention, but shoulders and wrists get loaded just as hard. Neglecting joint prep is how climbers get shoulder impingement + wrist tendinitis by their 40s. 5 minutes for a career of climbing — worth it.",
     checklist: [
-      { name: 'Wrist circles',              dose: '10 each direction, both wrists' },
-      { name: 'Prayer stretch',             dose: 'Palms together at chest, lower to waist · hold 30s' },
-      { name: 'Reverse prayer',             dose: 'Backs of hands together, raise up · hold 30s' },
-      { name: 'Fingers-forward wrist hold', dose: 'Hands on floor, fingers toward knees, rock weight · 30s' },
-      { name: 'Band pull-aparts',           dose: '15 reps, hold band wide, squeeze shoulder blades' },
-      { name: 'Arm circles',                dose: '10 forward, 10 backward — small then large' },
-      { name: 'Scapular pull-ups',          dose: '8 reps on a bar, straight arms, move only the blades' },
+      {
+        name: 'Wrist circles',
+        dose: '10 each direction, both wrists',
+        detail: 'Interlace fingers, roll wrists smoothly in a full circle. Then reverse. Both wrists at once.',
+      },
+      {
+        name: 'Prayer stretch',
+        dose: '30s hold',
+        detail: 'Palms pressed together at chest. Keeping palms together, lower hands toward your waist. Stop when you feel a stretch along the inside of the forearms.',
+      },
+      {
+        name: 'Reverse prayer',
+        dose: '30s hold',
+        detail: 'Backs of hands pressed together at chest, elbows out. Raise hands upward slowly until you feel a stretch across the top of the forearms and wrists.',
+      },
+      {
+        name: 'Fingers-forward wrist hold',
+        dose: '30s',
+        detail: 'On all fours, palms flat, fingers pointing toward your knees. Rock weight gently forward and back over the hands to load the inner forearms.',
+      },
+      {
+        name: 'Fingers-back wrist hold',
+        dose: '30s',
+        detail: 'On all fours, palms flat, fingers pointing AWAY from your knees (toward your feet). Rock weight forward and back to load the outer forearms and wrist extensors.',
+      },
+      {
+        name: 'Band pull-aparts',
+        dose: '15 reps',
+        detail: 'Hold a resistance band shoulder-width at chest height, arms straight. Pull the band apart until arms are wide, squeezing shoulder blades together. Slow return.',
+      },
+      {
+        name: 'Arm circles',
+        dose: '10 forward + 10 backward',
+        detail: 'Arms straight out at your sides. Start with tiny circles, gradually grow to shoulder-width. Reverse direction.',
+      },
+      {
+        name: 'Scapular pull-ups',
+        dose: '8 reps',
+        detail: 'Hang from a bar with straight arms. Without bending your elbows, pull your shoulder blades DOWN and together (chest slightly rises). Lower. Only the scapulae move.',
+      },
     ],
   },
 
   'hip-mobility': {
     name: 'Hip mobility',
     cue:
-      "Hip flexibility drives every drop knee, high step, and heel hook. Do these at the END of a session when the body is warm — 5-7 min total.",
+      "5-7 min hip stretches. Do these at the start of every session — sets up drop knees, high steps, heel hooks.",
     why:
-      "Tight hips force you to compensate with arms — every drop knee becomes a lock-off, every high step becomes a campus-move. Getting to 5.12+ WITHOUT hip mobility is possible but exhausting. Getting there WITH it is a smoother ride.",
+      "Tight hips force you to compensate with arms — every drop knee becomes a lock-off, every high step becomes a campus-move. Getting to 5.12+ WITHOUT hip mobility is possible but exhausting.",
     checklist: [
-      { name: 'Downward dog → cobra flow',   dose: '5 slow reps (breath-linked)' },
-      { name: 'Hip flexor lunge stretch',    dose: '45s each side (front knee 90°, hips forward)' },
-      { name: 'Pigeon pose',                 dose: '60s each side (fold over the front shin)' },
-      { name: '90/90 hip stretch',           dose: '45s each side (front + back leg at 90°)' },
-      { name: 'Deep squat hold',             dose: '60s (heels down if possible, else on a book)' },
-      { name: 'Butterfly / seated straddle', dose: '60s (relax knees down)' },
-      { name: 'Frog pose',                   dose: '45s (knees wide, hips back)' },
+      {
+        name: 'Downward dog → cobra flow',
+        dose: '5 slow reps',
+        detail: 'From push-up position, push hips up and back into inverted-V downward dog (heels reach toward floor, chest to thighs). Then flow forward, lowering hips through push-up into cobra (chest up, hips down, thighs on floor). Breath: exhale to down dog, inhale to cobra.',
+      },
+      {
+        name: 'Hip flexor lunge stretch',
+        dose: '45s each side',
+        detail: 'Lunge position, back knee on floor, front knee at 90°. Tuck your pelvis (tail under) and drive hips forward until you feel a stretch in the front of the back-leg hip. Squeeze the glute of the back leg for a deeper stretch.',
+      },
+      {
+        name: 'Pigeon pose',
+        dose: '60s each side',
+        detail: 'From all-fours, bring one shin flat under your chest (front knee out to the side, ankle roughly under opposite hip). Back leg extends straight behind you. Slowly fold your torso over the front shin. Should feel deep in the front-leg glute and hip.',
+      },
+      {
+        name: '90/90 hip stretch',
+        dose: '45s each side',
+        detail: 'Seated on the floor. Front leg 90° bent in front of you (shin parallel to your hips). Back leg 90° bent OFF to the side (shin parallel to your spine). Sit tall, then slowly fold forward over the front leg.',
+      },
+      {
+        name: 'Deep squat hold',
+        dose: '60s',
+        detail: 'Feet shoulder-width, toes slightly out. Squat all the way down, hips as low as they go, chest up. Elbows can push knees outward. Heels down if possible — else stack toes on a book / plate to elevate.',
+      },
+      {
+        name: 'Butterfly stretch',
+        dose: '60s',
+        detail: 'Seated, soles of feet together, knees fall out to the sides. Sit tall, then fold forward from the hips (not the low back). Let gravity press the knees down — do not force.',
+      },
+      {
+        name: 'Frog pose',
+        dose: '45s',
+        detail: 'On all fours, knees wide out to the sides (as wide as comfortable), shins and inner ankles on the floor. Slowly rock hips BACK toward your heels. Deep groin / inner hip stretch.',
+      },
     ],
   },
 
   // ============ TECHNIQUE / EFFICIENCY ============
   'efficiency-work': {
-    on_wall: true,
+    style: 'toprope',
     name: 'Efficiency training',
+    cue:
+      "2–3 routes at your flash grade, 2 attempts per route. ONE technique focus per attempt — foot placement, hip rotation, breath timing, straight arms, silent feet. Rest 5–10 min between climbs (belay swap + walk). Total ~40 min.\n\nAttempt 1 goal: send/redpoint the route and identify a rough spot. Attempt 2 goal: apply the ONE focus, notice what changed.",
     why:
-      "This is THE workout for your level. Technique is your #1 limiter until 5.11a, and even at 5.12 it accounts for more of your ceiling than strength. Repeating a route/boulder with a fresh focus is how you actually rewire movement — cycling mindlessly through new climbs does not.",
-    // The how-to differs meaningfully by style — top rope is pumpier so
-    // you can't reasonably re-climb 3× per route; bouldering has short
-    // enough attempts that 3× per problem IS the pattern. ClimbLogSheet
-    // renders whichever cue matches the active style toggle.
-    cueByStyle: {
-      toprope:
-        "3 routes at your flash grade + 3 routes just below flash. 1–2 attempts per route (this is TR — pump destroys form on attempt 3). ONE technique focus per attempt: foot placement, hip rotation, breath timing, straight arms, silent feet. Rest 5–10 min between climbs (belay swap + walk). Total ~45 min.",
-      boulder:
-        "3–5 boulders at your flash grade. 3× per boulder — same problem, ONE new focus per attempt (foot placement, body position, hip turn, hand sequence). Rest 2–5 min between attempts. Then move to the next boulder. Total ~45 min.",
-    },
+      "This is THE workout for your level. Technique is your #1 limiter until 5.11a, and even at 5.12 it accounts for more of your ceiling than strength. Same route + fresh focus is how you rewire movement — new routes with no plan is how you burn time.",
   },
   'movement-drill': {
-    on_wall: true,
+    style: 'toprope',
     name: 'Movement drill (pick ONE per session)',
     cue:
       "Pick ONE of these each session and drill it deep for 15-20 min on 2-3 easy routes. Rotate weekly — the goal is to make each pattern automatic.\n\n" +
@@ -145,6 +198,7 @@ export const EXERCISES = {
       "Sloppy footwork is the difference between 5.10 and 5.11 for most climbers. Force-training precision at low grades builds it into your default.",
   },
   'no-hands-slab': {
+    style: 'toprope',
     on_wall: true,
     name: 'No-hands slab',
     cue:
@@ -153,6 +207,7 @@ export const EXERCISES = {
       "The single biggest 5.10-to-5.11 or V3-to-V5 unlock is trusting your feet. Removing hands forces the trust — you can't fake it.",
   },
   'route-reading': {
+    style: 'toprope',
     name: 'Route reading',
     cue:
       "Before pulling on, trace the whole route with your eyes. Identify: (1) the crux moves, (2) potential rest positions, (3) hand-foot sequences. Commit to the plan in your head, THEN start.",
@@ -162,31 +217,33 @@ export const EXERCISES = {
 
   // ============ ENDURANCE ============
   'arc-training': {
-    on_wall: true,
-    name: 'ARC training',
+    style: 'toprope',
+    name: 'Easy laps',
     cue:
-      "Aerobic Restoration + Capillarity: 20-30 min of CONTINUOUS climbing at a grade 3-4 letters below your flash (usually 5.7 for you now). You should be able to hold a conversation. If you get pumped, you're going too hard — slow down. Traverse if you run out of route. NO stopping.",
+      "Climb a 5.7 (or lower) 3-4 times with minimal rest between climbs — belay swap + walk = your rest, not sitting down. Focus on form: silent feet, straight arms, breathing steady, resting on skeleton not muscles. This is the same 'flow' feel as your warmup route, just repeated.\n\n" +
+      "You're building forearm capillary density AND ingraining efficient movement in a lightly-fatigued body. If you can't hold a conversation at any point, drop a grade or add more rest between climbs.",
     why:
-      "ARC builds capillary density in the forearms — the physiological basis for climbing endurance. It doesn't feel like training when you do it, but it's what separates a 5.11 climber who pumps out at bolt 4 from one who cruises to the anchors.",
+      "The pump-management engine that separates a 5.11 climber who dies at bolt 4 from one who cruises to the anchors. Full 20-30 min continuous ARCing is a pro-level ask — you're building toward it. For now: multiple easy laps, minimal rest = same effect.",
   },
   'arc-cooldown': {
-    on_wall: true,
-    name: 'ARC cool-down',
+    style: 'toprope',
+    name: 'Easy cool-down lap',
     cue:
-      "10-15 min of easy continuous climbing at 5.7 or below. Not for training — for actively flushing out lactic acid and cementing efficient movement in a tired body.",
+      "1-2 laps on a 5.7 or below, taken slow with big breaths. This is NOT training — it's flushing lactic acid so tomorrow feels less trashed.",
     why:
-      "Ending a hard session on the wall with easy movement helps recovery and reinforces good technique even under fatigue.",
+      "Active recovery after PE is the difference between recovering in 24h and 48h. Skip it and you'll notice.",
   },
   'four-by-four': {
-    on_wall: true,
+    style: 'boulder',
     name: '4x4 workout',
     cue:
-      "Pick 4 routes at ~2 grades below your flash. Climb all 4 back-to-back with minimal rest (~30-60s between). After the 4th, rest 3-5 min. That's 1 round. Complete 4 rounds. Brutal but transformative.",
+      "Pick 4 boulders around V0-V1 (~2 grades below your flash — you should be able to send each cleanly). Climb all 4 back-to-back with minimal rest (30-60s between problems — the walk between them). After the 4th, rest 3-5 min. That's 1 round. Complete 4 rounds = 16 problems total.\n\n" +
+      "You should hit real pump on rounds 3-4. If you can't finish, easier boulders next time — this workout only works if you can COMPLETE all 16.",
     why:
-      "Power endurance = ability to keep pulling hard when pumped. This is the workout that turns 'I can do the moves' into 'I can send the route.' Central to breaking into the 5.11s.",
+      "Power endurance = keep pulling hard when pumped. The workout that turns 'I can do the moves' into 'I can send the route.' Bouldering-only for you right now — TR 4x4 needs multiple similar-grade routes with a belayer swap you can rush, which most gyms don't support.",
   },
   'route-repeats': {
-    on_wall: true,
+    style: 'toprope',
     name: 'Route repeats / laps',
     cue:
       "Pick 1-2 routes at your flash grade. Climb each 2-3 times with 3-5 min rest between attempts. Same route = same moves = increasing efficiency each attempt as you optimize sequence, breathing, rest positions.",
@@ -196,6 +253,7 @@ export const EXERCISES = {
 
   // ============ STRENGTH ============
   'pullup-negative': {
+    checkOnly: true,
     name: 'Pull-up negatives',
     cue:
       "Start at the top of a pull-up (chin over bar). Lower yourself for 3-5 seconds, arms fully extended at the bottom. Reset (step / jump back to top) and repeat. 5 reps per set, 3 sets, 2 min rest between sets.",
@@ -203,6 +261,7 @@ export const EXERCISES = {
       "Eccentric-focused pull work builds pulling strength and shoulder stability without loading fingers to failure. Key for lock-offs and controlled clip stances on lead.",
   },
   'weighted-pullup': {
+    checkOnly: true,
     name: 'Weighted pull-ups',
     cue:
       "Once bodyweight pull-ups are trivial (10+ clean): add weight via belt or pack. 4 sets × 5 reps, 3 min rest. Start light (5-10 lb), progress ~5 lb per 2 weeks. Full range, no kip.",
@@ -210,6 +269,7 @@ export const EXERCISES = {
       "Absolute pulling strength lets you generate on hard moves and rest in body positions others fall out of. Phase 2+.",
   },
   'grip-half-crimp': {
+    checkOnly: true,
     name: 'Half-crimp engagement',
     cue:
       "On a fingerboard: index/middle/ring on a 15-20mm edge, first knuckle bent ~90°, thumb relaxed. LIGHT engagement (NOT max hang). 5s on / 5s off, 5 reps. In later phases: 7s or 10s on/off.",
@@ -217,6 +277,7 @@ export const EXERCISES = {
       "Half crimp is climbing's most versatile grip AND the most vulnerable to injury at high load. Building tendon capacity gradually at low intensity is how you avoid an A2 pulley tear years from now.",
   },
   'grip-open-drag': {
+    checkOnly: true,
     name: 'Open-hand 3-finger drag',
     cue:
       "Same edge, only index/middle/ring, fingers STRAIGHT (not crimped), thumb off. Pull like dragging fingers off a shelf. 5s on / 5s off, 5 reps.",
@@ -224,6 +285,7 @@ export const EXERCISES = {
       "Different grip patterns load different tendon groups. Rotating open-hand and crimp prevents overuse of any single pattern.",
   },
   'grip-sloper': {
+    checkOnly: true,
     name: 'Sloper / full open hand',
     cue:
       "On a sloping hold or wider part of a fingerboard: all four fingers relaxed and spread, palm engaged. Squeeze like a doorknob. 5s on / 5s off, 5 reps.",
@@ -231,7 +293,7 @@ export const EXERCISES = {
       "Modern gym setting is volume-heavy. Slopers also train grip through the whole hand/forearm rather than isolated pulleys.",
   },
   'boulder-block': {
-    on_wall: true,
+    style: 'boulder',
     name: 'Bouldering block',
     cue:
       "30-45 min of focused bouldering on problems at or slightly above your flash boulder grade (V2-V4 for you). Rest generously between attempts (3-5 min). This is POWER work, not volume — quality attempts, not many.",
@@ -239,6 +301,7 @@ export const EXERCISES = {
       "Bouldering trains max power in a way top rope can't. Short intense pulls = better neural recruitment. This is where the strength for hard route cruxes actually comes from.",
   },
   'hangboard-repeaters': {
+    checkOnly: true,
     name: 'Hangboard repeaters',
     cue:
       "Phase 3+ only. 7 seconds on / 3 seconds off × 6 reps = 1 set. Rest 3 min between sets. Use an edge you can hold for 10-12s max effort — no more. Warm up thoroughly first.",
@@ -248,6 +311,7 @@ export const EXERCISES = {
 
   // ============ LEAD-SPECIFIC (Phase 3+) ============
   'clip-practice': {
+    style: 'toprope',
     name: 'Clip practice',
     cue:
       "On a top rope, at each clip position: pause, find a rest stance, practice the clip motion both directions (under-clip and over-clip). Ground drill 10x with a quickdraw in your hand first until it's automatic.",
@@ -255,7 +319,7 @@ export const EXERCISES = {
       "Clean, fast clips separate stressed leaders from confident ones. Fumbling a clip is the #1 preventable cause of taking a whipper. Ground drill until it's boring.",
   },
   'mock-lead': {
-    on_wall: true,
+    style: 'toprope',
     name: 'Mock lead',
     cue:
       "Climb top rope on a route while trailing a lead rope. At each bolt, clip the trailing rope as if leading. Get used to the extra rope, the drag, the clip stances — all with a top rope catching you.",
@@ -263,7 +327,7 @@ export const EXERCISES = {
       "Bridge between top rope and lead. Removes the fall consequence but rehearses everything else. Critical before your first real lead.",
   },
   'fall-practice': {
-    on_wall: true,
+    style: 'toprope',
     name: 'Fall practice',
     cue:
       "On lead, above a bolt (start with feet at bolt height, progress to 1-2 ft above): let go. Fall. Do this INTENTIONALLY in a controlled setting with an experienced belayer. Start small, build up. 5-10 falls per session, well below your redpoint grade.",
@@ -271,7 +335,7 @@ export const EXERCISES = {
       "The fear of falling is what caps most climbers below their physical potential. Deliberate controlled fall practice desensitizes the fear response. You'll climb harder because you'll try harder.",
   },
   'lead-cert-drill': {
-    on_wall: true,
+    style: 'toprope',
     name: 'Lead certification drill',
     cue:
       "Simulate the gym's lead cert exam: lead-climb 5.9, clip cleanly at every bolt, don't back-clip, don't Z-clip, handle rope smoothly, take a controlled fall above bolt 3. Do repeatedly until you pass a mock cert with a partner watching.",
@@ -304,114 +368,127 @@ export const EXERCISES = {
 
   // ============ SESSION 4 — FULL BODY / ANTAGONIST ============
   'dynamic-warmup': {
-    name: 'Dynamic warm-up (Session 4)',
+    name: 'Dynamic warm-up',
     cue:
-      "5 min to raise heart rate and mobilize joints:\n\n" +
-      "- Jumping jacks — 30s\n" +
-      "- Arm circles — 10 forward, 10 backward\n" +
-      "- Leg swings — 10 per leg, front/back and side/side\n" +
-      "- Hip openers — 5 per side (world's greatest stretch)\n" +
-      "- Cat-cow — 10 slow reps\n\n" +
-      "Just enough to break a light sweat.",
+      "5 min to raise heart rate and mobilize joints. Tick each item off.",
     why:
       "Full-body sessions demand more than climbing-specific prep. This gets your legs, hips, and core online.",
+    checklist: [
+      { name: 'Jump rope',    dose: '2-3 min',                detail: 'Steady rhythm, both feet or one-foot alternating. Raises HR fast and warms up calves + shoulders.' },
+      { name: 'Arm circles',  dose: '10 forward + 10 back',   detail: 'Arms out at sides. Start small, build to shoulder-width. Reverse direction.' },
+      { name: 'Leg swings',   dose: '10 per leg, front/back and side/side', detail: 'Hold a wall for balance. Big controlled swings. Loosens hips and hamstrings.' },
+      { name: 'Hip openers',  dose: '5 per side (world\'s greatest stretch)', detail: 'From push-up, step foot outside same-side hand. Reach the outside arm up toward ceiling. Look up. Return.' },
+      { name: 'Cat-cow',      dose: '10 slow reps',           detail: 'On all fours. Round back up (cat, exhale) → arch back down and lift chest (cow, inhale). Move with breath.' },
+    ],
   },
+
+  // Push / straight-arm strength — climbing-specific antagonist strength
   'push-up': {
-    name: 'Push-ups',
-    cue:
-      "Standard: hands shoulder-width, body straight, chest to floor, full lockout. 3 sets × 15. When trivial, add reps, elevate feet, or move to decline push-ups.",
-    why:
-      "Climbers build massive pull capacity and neglected push. The imbalance rounds shoulders forward and sets up impingement. Nonnegotiable.",
+    checkOnly: true, name: 'Push-ups',
+    cue: "Standard push-up: hands shoulder-width, body straight from head to heels, chest to floor, full lockout. 3 sets × 15. Elevate feet when trivial.",
+    why: "Climbers build massive pull capacity and neglected push. The imbalance rounds shoulders forward and sets up impingement.",
+  },
+  'pseudo-planche-pushup': {
+    checkOnly: true, name: 'Pseudo planche push-up',
+    cue: "Push-up hands rotated so fingers point back toward hips. Lean shoulders forward over the wrists as you lower. 3 sets × 8-10. Way harder than it looks.",
+    why: "Trains straight-arm shoulder strength — the base for advanced climbing positions AND for a future planche if you want it.",
   },
   'pike-pushup': {
-    name: 'Pike push-ups',
-    cue:
-      "Downward-dog position (hips up, feet planted, hands on ground). Lower head between hands, press back up. Trains overhead pressing. 3 sets × 8-12.",
-    why:
-      "Overhead pressing is what climbers should be doing to balance the pull-heavy sport. Pike push-ups are the bodyweight version of a shoulder press.",
+    checkOnly: true, name: 'Pike push-up',
+    cue: "Downward-dog position (hips high, hands + feet on floor forming an inverted V). Lower head between hands, press back up. 3 sets × 8-12. Bodyweight overhead press.",
+    why: "Overhead pressing balance for the pull-heavy sport. Progression to wall HSPU.",
   },
+  'wall-hspu': {
+    checkOnly: true, name: 'Wall handstand push-up',
+    cue: "Chest-to-wall handstand (belly facing wall, ~6\" out). Lower head slowly to a pad. Press back up. Start with band assist or partial ROM. 3 sets × 3-6.",
+    why: "The full expression of overhead strength for climbers. Excellent shoulder + core coupling — carries directly to compressive climbing positions.",
+  },
+  'ring-dip': {
+    checkOnly: true, name: 'Ring dip',
+    cue: "On gymnastic rings (or parallel bars if no rings): lower until shoulders are just below elbows, full lockout at top. Turn rings out at top when you have the control. 3 sets × 6-10.",
+    why: "Trains push + shoulder stabilizers together. Rings force real control, not just brute strength.",
+  },
+  'handstand-attempts': {
+    checkOnly: true, name: 'Freestanding handstand practice',
+    cue: "10 kick-up attempts to a freestanding handstand. Fingertips grip floor, look at your hands, engage the core. Fall out safely to the side (cartwheel exit). Never race to time — race to control.",
+    why: "Handstand builds shoulder mobility, control, and the balance-under-inversion that's key for advanced climbing positions.",
+  },
+  'adv-tuck-planche': {
+    checkOnly: true, name: 'Advanced tuck planche hold',
+    cue: "Hands on floor (or parallettes). Knees drawn IN toward chest but hips lifted so the back is FLAT parallel to the floor. Arms straight, scapulae protracted. 5 × 8-15s holds. Very high difficulty — the tuck planche version is a good stepping stone.",
+    why: "Straight-arm strength is a climber's cheat code — it lets you hold body tension without burning forearms. Directly transfers to slopey and off-vertical climbing.",
+  },
+  'tuck-front-lever': {
+    checkOnly: true, name: 'Tuck front lever hold',
+    cue: "Hang from a bar, pull knees to chest, and pull the body up until torso is horizontal (parallel to floor). Straight arms — pull with the LATS and SCAP, not the biceps. 5 × 5-10s holds.",
+    why: "The single best exercise for climbing-specific pulling strength. Trains the exact body position of a hard steep climbing lock-off.",
+  },
+  'ice-cream-makers': {
+    checkOnly: true, name: 'Ice cream makers',
+    cue: "From a full pull-up (chin over bar), lean back to inverted hang WITH CONTROL over 3-5 seconds. Then return to the top of the pull-up. If too hard, do just the eccentric (jump to inverted, lower to hang, jump up). 3 × 5.",
+    why: "Best eccentric lat + core exercise for climbers. Also builds the position control that prevents biceps tendinitis when pulling into overhangs.",
+  },
+
+  // Shoulder + elbow health
   'ext-rotation': {
-    name: 'External rotation',
-    cue:
-      "Dumbbell (2-5 lb) or resistance band. Elbow tucked to side at 90°, forearm parallel to ground. Rotate outward keeping the elbow pinned. Slow, controlled. 3 sets × 15 each side.",
-    why:
-      "Directly targets the rotator cuff muscles climbing under-trains. This one exercise prevents the impingement pattern that ends most climbing careers.",
+    checkOnly: true, name: 'External rotation',
+    cue: "Dumbbell (2-5 lb) or resistance band. Elbow tucked to side at 90°, forearm parallel to ground. Rotate outward keeping the elbow pinned. Slow, controlled. 3 sets × 15 each side.",
+    why: "Targets the rotator cuff climbing under-trains. Prevents impingement.",
   },
   'prone-ytw': {
-    name: 'Prone Y / T / W raises',
-    cue:
-      "Lying face-down (or bent over):\n" +
-      "- Y — arms in a Y overhead, lift both hands off floor · 8 reps\n" +
-      "- T — arms straight out to sides, lift · 8 reps\n" +
-      "- W — elbows bent, hands by ears, lift · 8 reps\n" +
-      "Squeeze shoulder blades on each rep. Light weight or no weight.\n" +
-      "3 sets of the full sequence.",
-    why:
-      "Trains the mid-back and rear delts — where climbers develop the worst muscular imbalance. Corrects rounded shoulders over time.",
+    checkOnly: true, name: 'Prone Y / T / W raises',
+    cue: "Lying face-down (or bent over):\n- Y — arms in a Y overhead, lift · 8 reps\n- T — arms straight out to sides, lift · 8 reps\n- W — elbows bent, hands by ears, lift · 8 reps\nSqueeze shoulder blades. Light or no weight. 3 sets of the full sequence.",
+    why: "Trains the mid-back and rear delts — where climbers develop the worst muscular imbalance.",
   },
   'wrist-ext': {
-    name: 'Wrist extension',
-    cue:
-      "Light dumbbell (2-5 lb). Forearm on your thigh, palm down, dumbbell off the edge. Curl the wrist UP, slow. 3 sets × 15.",
-    why:
-      "Balances the constant flexor loading climbing does. Prevents the medial epicondylitis (climber's elbow) that plagues everyone eventually.",
+    checkOnly: true, name: 'Wrist extension',
+    cue: "Light dumbbell (2-5 lb). Forearm on your thigh, palm down, dumbbell off the edge. Curl the wrist UP, slow. 3 sets × 15.",
+    why: "Balances the constant flexor loading climbing does. Prevents medial epicondylitis (climber's elbow).",
   },
   'reverse-wrist-curl': {
-    name: 'Reverse wrist curl',
-    cue:
-      "Palm-up variation. Forearm on thigh, palm up, dumbbell hanging over the edge. Curl the wrist up. 3 sets × 15. Slow tempo.",
-    why:
-      "Trains wrist flexors in an unfamiliar range. Combined with wrist extensions, dramatically reduces elbow pain risk.",
+    checkOnly: true, name: 'Reverse wrist curl',
+    cue: "Palm-up variation. Forearm on thigh, palm up, dumbbell hanging over the edge. Curl the wrist up. 3 sets × 15. Slow tempo.",
+    why: "Trains wrist flexors in an unfamiliar range. Combined with wrist extensions, dramatically reduces elbow pain risk.",
   },
+
+  // Legs (climbers famously skip)
   'squat': {
-    name: 'Bodyweight squat',
-    cue:
-      "Feet shoulder-width, toes slightly out. Descend as if sitting in a chair — knees track over toes, chest up. Full depth (thighs parallel or below). Drive through heels. 3 sets × 20.",
-    why:
-      "Climbers famously neglect legs. Strong legs = more efficient movement on the wall (you push off the feet, not just pull with hands). Also better resilience for outdoor approaches.",
+    checkOnly: true, name: 'Bodyweight squat',
+    cue: "Feet shoulder-width, toes slightly out. Descend as if sitting in a chair — knees track over toes, chest up. Full depth. Drive through heels. 3 sets × 20.",
+    why: "Strong legs = you push off the feet on the wall, not just pull with hands. Also outdoor approach resilience.",
   },
   'bulgarian-split-squat': {
-    name: 'Bulgarian split squat',
-    cue:
-      "Back foot elevated on a bench/chair behind you. Drop into a split squat, front knee tracking over toes. 3 sets × 10 each leg. Add dumbbells when bodyweight is easy.",
-    why:
-      "Single-leg strength = the movement pattern of high-step rock-overs on the wall. Also identifies + fixes left/right leg imbalances.",
+    checkOnly: true, name: 'Bulgarian split squat',
+    cue: "Back foot elevated on a bench/chair behind you. Drop into a split squat, front knee tracking over toes. 3 sets × 10 each leg. Add dumbbells when bodyweight is easy.",
+    why: "Single-leg strength = the movement pattern of high-step rock-overs on the wall.",
   },
   'calf-raise': {
-    name: 'Calf raise',
-    cue:
-      "Stand on the edge of a step, heels hanging off. Rise onto toes, pause 1 second, lower slowly below step level. 3 sets × 15.",
-    why:
-      "Foot smearing and small-hold precision start at the calf. Weak calves = wobbly feet.",
+    checkOnly: true, name: 'Calf raise',
+    cue: "Stand on the edge of a step, heels hanging off. Rise onto toes, pause 1 second, lower slowly below step level. 3 sets × 15.",
+    why: "Foot smearing and small-hold precision start at the calf.",
   },
+
+  // Core
   'hollow-body-hold': {
-    name: 'Hollow body hold',
-    cue:
-      "Lying on back: low back pressed to floor, arms overhead, legs straight just off the ground, head/shoulders slightly off floor. Body forms a shallow banana curled upward. 3 sets × 30-45s.",
-    why:
-      "Owns the midline — the core position you use on every overhang and every roof.",
+    checkOnly: true, name: 'Hollow body hold',
+    cue: "Lying on back: low back pressed to floor, arms overhead, legs straight just off the ground, head/shoulders slightly off floor. Body forms a shallow banana curled upward. 3 sets × 30-45s.",
+    why: "Owns the midline — the core position you use on every overhang and every roof.",
   },
   'plank': {
-    name: 'Plank',
-    cue:
-      "On forearms, body straight from head to heels, glutes engaged. 3 sets × 45-60s. When easy, progress to side planks or single-arm planks.",
-    why:
-      "Core endurance for long routes and multi-pitch. Prevents the sag-in-the-middle position that wastes energy.",
+    checkOnly: true, name: 'Plank',
+    cue: "On forearms, body straight from head to heels, glutes engaged. 3 sets × 45-60s. When easy, progress to side planks or single-arm planks.",
+    why: "Core endurance for long routes and multi-pitch.",
   },
   'dead-bug': {
-    name: 'Dead bug',
-    cue:
-      "Lying on back, arms straight up over shoulders, knees bent to 90° over hips. Simultaneously lower one arm overhead and the OPPOSITE leg straight toward the floor. Return, repeat other side. 3 sets × 10 each side. Low back stays PRESSED to floor throughout.",
-    why:
-      "Anti-rotation core work. The core-to-limb connection that lets you generate force from movement, not just isolate muscles.",
+    checkOnly: true, name: 'Dead bug',
+    cue: "Lying on back, arms straight up over shoulders, knees bent to 90° over hips. Simultaneously lower one arm overhead and the OPPOSITE leg straight toward the floor. Return, repeat other side. 3 sets × 10 each side. Low back stays PRESSED to floor throughout.",
+    why: "Anti-rotation core work. The core-to-limb connection that lets you generate force from movement.",
   },
-  // (hip-mobility with full checklist is defined near the top of this file.)
+
   'zone2-cardio': {
-    name: 'Zone 2 cardio (optional)',
-    cue:
-      "15-20 min of steady-state cardio — bike, jog, row, or hike. Effort: you can hold a conversation but breathing is elevated. Heart rate ~60-70% of max.",
-    why:
-      "Outdoor climbing means outdoor approaches — often long ones. Zone 2 builds the aerobic base that makes 'we hiked 3 hours in' feel routine instead of destroying you for the climb.",
+    checkOnly: true, name: 'Zone 2 cardio (optional)',
+    cue: "15-20 min of steady-state cardio — bike, jog, row, or hike. Effort: you can hold a conversation but breathing is elevated. Heart rate ~60-70% of max.",
+    why: "Outdoor climbing means outdoor approaches. Zone 2 builds the aerobic base that makes 'we hiked 3 hours in' feel routine.",
   },
 };
 

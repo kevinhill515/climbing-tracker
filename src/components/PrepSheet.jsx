@@ -74,9 +74,14 @@ export default function PrepSheet({ open, onClose, exerciseId, sessionType }) {
                       {isOn ? '✓' : ''}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <div className={`text-sm font-medium ${isOn ? 'text-orange-100' : 'text-zinc-100'}`}>{it.name}</div>
-                      {it.dose && (
-                        <div className="text-[11px] text-zinc-400 mt-0.5">{it.dose}</div>
+                      <div className="flex items-baseline justify-between gap-2">
+                        <div className={`text-sm font-medium ${isOn ? 'text-orange-100' : 'text-zinc-100'}`}>{it.name}</div>
+                        {it.dose && (
+                          <div className="text-[11px] text-zinc-400 flex-shrink-0">{it.dose}</div>
+                        )}
+                      </div>
+                      {it.detail && (
+                        <div className="text-[11px] text-zinc-400 mt-1 leading-relaxed">{it.detail}</div>
                       )}
                     </div>
                   </div>

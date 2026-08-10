@@ -2,6 +2,7 @@ import Sheet from './Sheet.jsx';
 import ExerciseSheet from './ExerciseSheet.jsx';
 import PrepSheet from './PrepSheet.jsx';
 import ClimbLogSheet from './ClimbLogSheet.jsx';
+import StrengthCheckSheet from './StrengthCheckSheet.jsx';
 import { getExercise } from '../data/exercises.js';
 import { SESSION_META } from '../data/program.js';
 import { useStore } from '../store.jsx';
@@ -20,9 +21,10 @@ const TODAY = today;
 // (the main event), violet for prep (get ready), zinc for strength.
 export default function SessionSheet({ open, onClose, sessionType, phase }) {
   const { actions, data } = useStore();
-  const [exerciseOpen, setExerciseOpen] = useState(null);   // { id, prescription } — strength/accessory
+  const [exerciseOpen, setExerciseOpen] = useState(null);   // fallback strength log (rare)
   const [prepOpen, setPrepOpen] = useState(null);           // exerciseId — prep checklist
-  const [climbOpen, setClimbOpen] = useState(null);         // { id, prescription } — on-wall attempt
+  const [climbOpen, setClimbOpen] = useState(null);         // { id, prescription } — climb attempt
+  const [strengthOpen, setStrengthOpen] = useState(null);   // exerciseId — off-wall check-only
 
   // Combined "logged today" counts — pulls both exercise logs AND grade
   // attempts (which the ClimbLogSheet writes to grades.[style].attempts).
@@ -86,58 +88,66 @@ export default function SessionSheet({ open, onClose, sessionType, phase }) {
             <div className="text-[11px] text-zinc-500 mt-0.5">{meta.time}</div>
           </div>
 
-          {/* Steps grouped by kind: Prep → On Wall → Off Wall */}
+          {/* Steps grouped by kind: Prep / Top rope / Boulder / Off the wall */}
           {(() => {
-            const buckets = { prep: [], wall: [], off: [] };
+            const buckets = { prep: [], toprope: [], boulder: [], off: [] };
             session.steps.forEach((step, i) => {
               const ex = getExercise(step.ex);
-              const kind = ex.on_wall ? 'wall' : ex.checklist ? 'prep' : 'off';
+              const kind = ex.checklist ? 'prep'
+                        : ex.style === 'toprope' ? 'toprope'
+                        : ex.style === 'boulder' ? 'boulder'
+                        : 'off';
               buckets[kind].push({ step, ex, i });
             });
             const groups = [
-              { key: 'prep', label: 'Prep',            color: 'violet',  items: buckets.prep },
-              { key: 'wall', label: 'On the wall',     color: 'orange',  items: buckets.wall },
-              { key: 'off',  label: 'Off the wall',    color: 'zinc',    items: buckets.off  },
+              { key: 'prep',    label: 'Prep',        color: 'violet',   items: buckets.prep },
+              { key: 'toprope', label: 'Top rope',    color: 'sky',      items: buckets.toprope },
+              { key: 'boulder', label: 'Boulder',     color: 'fuchsia',  items: buckets.boulder },
+              { key: 'off',     label: 'Off the wall',color: 'zinc',     items: buckets.off  },
             ].filter((g) => g.items.length > 0);
+
+            const dotClass = (c) =>
+              c === 'sky'     ? 'bg-sky-400' :
+              c === 'fuchsia' ? 'bg-fuchsia-400' :
+              c === 'violet'  ? 'bg-violet-400' :
+                                'bg-zinc-500';
+            const headingClass = (c) =>
+              c === 'sky'     ? 'text-sky-300' :
+              c === 'fuchsia' ? 'text-fuchsia-300' :
+              c === 'violet'  ? 'text-violet-300' :
+                                'text-zinc-400';
+            const badgeClass = (kind) =>
+              kind === 'toprope' ? 'bg-sky-500/25 text-sky-200' :
+              kind === 'boulder' ? 'bg-fuchsia-500/25 text-fuchsia-200' :
+              kind === 'prep'    ? 'bg-violet-500/25 text-violet-200' :
+                                   'bg-zinc-700 text-zinc-300';
 
             return (
               <div className="space-y-4">
                 {groups.map((group) => (
                   <div key={group.key} className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <div className={`h-2.5 w-2.5 rounded-sm ${
-                        group.color === 'orange' ? 'bg-orange-400' :
-                        group.color === 'violet' ? 'bg-violet-400' :
-                        'bg-zinc-500'
-                      }`} />
-                      <div className={`text-[11px] uppercase tracking-wider font-semibold ${
-                        group.color === 'orange' ? 'text-orange-300' :
-                        group.color === 'violet' ? 'text-violet-300' :
-                        'text-zinc-400'
-                      }`}>
+                      <div className={`h-2.5 w-2.5 rounded-sm ${dotClass(group.color)}`} />
+                      <div className={`text-[11px] uppercase tracking-wider font-semibold ${headingClass(group.color)}`}>
                         {group.label}
                       </div>
                       <div className="text-[10px] text-zinc-600">· {group.items.length}</div>
                     </div>
                     {group.items.map(({ step, ex, i }) => {
                       const count = todayCounts[step.ex] || 0;
-                      const kind = group.key;
-                      const badgeStyle =
-                        kind === 'wall' ? 'bg-orange-500/25 text-orange-200' :
-                        kind === 'prep' ? 'bg-violet-500/25 text-violet-200' :
-                        'bg-zinc-700 text-zinc-300';
                       return (
                         <button
                           key={i}
                           onClick={() => {
                             if (ex.checklist) setPrepOpen({ id: step.ex });
-                            else if (ex.on_wall) setClimbOpen({ id: step.ex, prescription: step.dose });
+                            else if (ex.style === 'toprope' || ex.style === 'boulder') setClimbOpen({ id: step.ex, prescription: step.dose });
+                            else if (ex.checkOnly) setStrengthOpen({ id: step.ex });
                             else setExerciseOpen({ id: step.ex, prescription: step.dose });
                           }}
                           className={`w-full text-left bg-zinc-800/50 hover:bg-zinc-800 border rounded-xl p-3 transition active:scale-[0.99] ${count > 0 ? 'border-orange-500/40' : 'border-zinc-800'}`}
                         >
                           <div className="flex items-start gap-3">
-                            <span className={`mt-0.5 inline-flex w-6 h-6 rounded-full ${badgeStyle} text-[11px] items-center justify-center flex-shrink-0 font-bold`}>
+                            <span className={`mt-0.5 inline-flex w-6 h-6 rounded-full ${badgeClass(group.key)} text-[11px] items-center justify-center flex-shrink-0 font-bold`}>
                               {i + 1}
                             </span>
                             <div className="flex-1 min-w-0">
@@ -199,13 +209,15 @@ export default function SessionSheet({ open, onClose, sessionType, phase }) {
         exerciseId={climbOpen?.id}
         prescription={climbOpen?.prescription}
         sessionType={sessionType}
-        defaultStyle={sessionType === 'Session 3' ? 'boulder' : 'toprope'}
         onClose={() => setClimbOpen(null)}
+      />
+
+      <StrengthCheckSheet
+        open={!!strengthOpen}
+        exerciseId={strengthOpen?.id}
+        sessionType={sessionType}
+        onClose={() => setStrengthOpen(null)}
       />
     </>
   );
 }
-
-// tiny helper (kept for future — currently the id is just the ex.id we
-// already have, but this makes the intent obvious in the callers)
-function getIdForCurrentStep(_session, _ex) { return null; }

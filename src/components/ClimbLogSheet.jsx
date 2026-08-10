@@ -5,25 +5,20 @@ import { getExercise } from '../data/exercises.js';
 import { gradesFor, STYLE_LABELS } from '../data/grades.js';
 import { today } from '../utils/dates.js';
 
-// Multi-climb log sheet for on-wall session steps (efficiency training,
-// 4x4, boulder block, movement drill, etc.).
+// Multi-climb log sheet for on-wall session steps. Style is FIXED per
+// exercise (ex.style === 'toprope' | 'boulder'); no toggle. Grade grid,
+// styling, and log record all inherit from that fixed style.
 //
-// Layout — single screen so you can bang out 5-6 climbs without leaving:
-//   1. Style toggle (toprope/boulder) — drives the how-to below AND the
-//      grade grid AND the record's style.
-//   2. How-to (uses ex.cueByStyle if present, otherwise ex.cue).
-//   3. List of climbs already logged for THIS session step today, each
-//      with a × to delete.
-//   4. Add-a-climb form (name, grade, result, difficulty, notes) with
-//      one "+ Add this climb" button that appends and clears fields
-//      (keeping style — you're usually on the same style all session).
-//   5. "Done" button closes.
+// Layout — single screen for 5-6 climbs without leaving:
+//   1. How-to (from ex.cue) + style badge
+//   2. List of climbs already logged for THIS session step today, × to delete
+//   3. Add-a-climb form (name, grade, result, difficulty, notes)
+//   4. "+ Add this climb" clears form for next
+//   5. "Done" closes
 export default function ClimbLogSheet({
   open, onClose, exerciseId, sessionType,
-  defaultStyle = 'toprope',
 }) {
   const { data, actions } = useStore();
-  const [style, setStyle] = useState(defaultStyle);
 
   // Add-a-climb form state
   const [routeName, setRouteName]   = useState('');
@@ -50,16 +45,15 @@ export default function ClimbLogSheet({
     return climbs;
   }, [data?.grades, todayStr, sessionType, exerciseId]);
 
-  // Reset on open
   useEffect(() => {
     if (open) {
-      setStyle(defaultStyle);
       setRouteName(''); setGrade(''); setResult('flash'); setDifficulty(5); setNotes('');
     }
-  }, [open, exerciseId, defaultStyle]);
+  }, [open, exerciseId]);
 
   if (!open || !exerciseId) return null;
   const ex = getExercise(exerciseId);
+  const style = ex.style || 'toprope';
   const list = gradesFor(style);
   const cue = ex.cueByStyle?.[style] || ex.cue;
 
@@ -86,29 +80,19 @@ export default function ClimbLogSheet({
     <Sheet open={open} onClose={onClose} title={ex.name} fullHeight>
       <div className="px-5 py-4 space-y-4">
 
-        {/* Style toggle */}
-        <div>
-          <div className="text-xs uppercase tracking-wide text-zinc-500 mb-1.5">Style</div>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => { setStyle('toprope'); setGrade(''); }}
-              className={`py-2 rounded-lg text-sm font-medium border ${
-                style === 'toprope' ? 'bg-orange-500 text-zinc-950 border-orange-500' : 'bg-zinc-800 border-zinc-700 text-zinc-300'
-              }`}
-            >{STYLE_LABELS.toprope}</button>
-            <button
-              onClick={() => { setStyle('boulder'); setGrade(''); }}
-              className={`py-2 rounded-lg text-sm font-medium border ${
-                style === 'boulder' ? 'bg-orange-500 text-zinc-950 border-orange-500' : 'bg-zinc-800 border-zinc-700 text-zinc-300'
-              }`}
-            >{STYLE_LABELS.boulder}</button>
-          </div>
+        {/* Style badge (fixed per exercise, not user-selectable) */}
+        <div className="flex items-center gap-2">
+          <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded font-semibold ${
+            style === 'toprope' ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40' :
+            'bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/40'
+          }`}>
+            {style === 'toprope' ? 'Top rope' : 'Boulder'}
+          </span>
         </div>
 
-        {/* How-to (style-specific if available) */}
         {cue && (
           <div>
-            <div className="text-xs uppercase tracking-wide text-zinc-500 mb-1">How-to · {STYLE_LABELS[style]}</div>
+            <div className="text-xs uppercase tracking-wide text-zinc-500 mb-1">How-to</div>
             <p className="text-sm text-zinc-300 leading-relaxed whitespace-pre-line">{cue}</p>
           </div>
         )}

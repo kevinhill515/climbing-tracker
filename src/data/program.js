@@ -50,28 +50,34 @@ export const SESSION_META = {
 // hold time) as they get stronger. 1-2× per week is the sweet spot.
 const SESSION_4_STEPS = [
   // ---- prep ----
-  { ex: 'dynamic-warmup',    dose: '5 min — jumping jacks, arm circles, leg swings, hip openers, cat-cow' },
-  // ---- push ----
-  { ex: 'push-up',           dose: '3 × 15' },
-  { ex: 'pike-pushup',       dose: '3 × 8-12 — overhead pressing balance' },
-  // ---- shoulder health ----
-  { ex: 'ext-rotation',      dose: '3 × 15 each side · 2-5 lb dumbbell or band' },
-  { ex: 'prone-ytw',         dose: '3 sets of 8 Y + 8 T + 8 W' },
-  // ---- wrist / elbow ----
-  { ex: 'wrist-ext',         dose: '3 × 15 · 2-5 lb' },
-  { ex: 'reverse-wrist-curl',dose: '3 × 15 · 2-5 lb' },
+  { ex: 'hip-mobility',      dose: '5-7 min hip stretches — start warm' },
+  { ex: 'dynamic-warmup',    dose: '5 min — jump rope, arm circles, leg swings, hip openers, cat-cow' },
+  // ---- push / straight-arm strength (climbing-specific antagonist) ----
+  { ex: 'push-up',                 dose: '3 × 15' },
+  { ex: 'pseudo-planche-pushup',   dose: '3 × 8-10 — hands rotated back, lean forward as you lower' },
+  { ex: 'pike-pushup',             dose: '3 × 8-12 — bodyweight overhead press' },
+  { ex: 'wall-hspu',               dose: '3 × 3-6 (band assist if needed) — full HSPU is a long-term goal' },
+  { ex: 'ring-dip',                dose: '3 × 6-10 on rings (or dips if no rings)' },
+  { ex: 'handstand-attempts',      dose: '10 kick-up attempts — control > time' },
+  // ---- pull / straight-arm strength ----
+  { ex: 'adv-tuck-planche',        dose: '5 × 8-15s holds — straight arms, scapulae protracted' },
+  { ex: 'tuck-front-lever',        dose: '5 × 5-10s holds — pull with lats, not biceps' },
+  { ex: 'ice-cream-makers',        dose: '3 × 5 — top of pull-up → controlled lean back to inverted hang → up' },
+  // ---- shoulder + elbow health ----
+  { ex: 'ext-rotation',            dose: '3 × 15 each side · 2-5 lb' },
+  { ex: 'prone-ytw',               dose: '3 sets of 8 Y + 8 T + 8 W' },
+  { ex: 'wrist-ext',               dose: '3 × 15 · 2-5 lb' },
+  { ex: 'reverse-wrist-curl',      dose: '3 × 15 · 2-5 lb' },
   // ---- legs ----
-  { ex: 'squat',             dose: '3 × 20 bodyweight (add DBs when trivial)' },
-  { ex: 'bulgarian-split-squat', dose: '3 × 10 each leg' },
-  { ex: 'calf-raise',        dose: '3 × 15 on a step edge' },
+  { ex: 'squat',                   dose: '3 × 20 bodyweight (add DBs when trivial)' },
+  { ex: 'bulgarian-split-squat',   dose: '3 × 10 each leg' },
+  { ex: 'calf-raise',              dose: '3 × 15 on a step edge' },
   // ---- core ----
-  { ex: 'hollow-body-hold',  dose: '3 × 30-45s' },
-  { ex: 'plank',             dose: '3 × 45-60s' },
-  { ex: 'dead-bug',          dose: '3 × 10 each side' },
-  // ---- mobility ----
-  { ex: 'hip-mobility',      dose: '3 min routine' },
+  { ex: 'hollow-body-hold',        dose: '3 × 30-45s' },
+  { ex: 'plank',                   dose: '3 × 45-60s' },
+  { ex: 'dead-bug',                dose: '3 × 10 each side' },
   // ---- optional cardio ----
-  { ex: 'zone2-cardio',      dose: '15-20 min · optional but valuable for outdoor prep' },
+  { ex: 'zone2-cardio',            dose: '15-20 min · optional but great for outdoor approach prep' },
 ];
 
 // Helper: standard Session 1 structure per phase's grade progression.
@@ -82,16 +88,16 @@ const SESSION_4_STEPS = [
 //   4. ARC training              (endurance base)
 //   5. Pull-up negatives         (strength — after warmup and hard route work)
 //   6. 3 grip positions          (finger tendon capacity — low intensity finisher)
-function session1Steps({ warmupGrade, effGradeFlash, effGradeSub, arcGrade, pullSets, pullVariant = 'pullup-negative', gripSecs, hangboard = false }) {
+function session1Steps({ warmupGrade, effGradeFlash, arcGrade, pullSets, pullVariant = 'pullup-negative', gripSecs, hangboard = false }) {
   const steps = [
-    // Prep block (hip mobility first, then joint prep — both before climbing)
+    // Prep
     { ex: 'hip-mobility',    dose: '5-7 min hip stretches — start warm' },
     { ex: 'joint-prep',      dose: '5 min wrist + shoulder routine' },
-    // Climbing block
+    // Top rope block
     { ex: 'warmup-route',    dose: `1 easy route at ${warmupGrade}` },
-    { ex: 'efficiency-work', dose: `3 routes at ${effGradeFlash} + 3 routes at ${effGradeSub} · 45 min` },
-    { ex: 'arc-training',    dose: `20-30 min continuous on ${arcGrade}, conversation pace` },
-    // Strength / finger tendon block (after climbing so climbing is fresh work)
+    { ex: 'efficiency-work', dose: `2-3 routes at ${effGradeFlash}, 2 attempts each, ONE focus per attempt · ~40 min` },
+    { ex: 'arc-training',    dose: `3-4 laps on a ${arcGrade}, minimal rest between (belay swap = your rest)` },
+    // Off-the-wall strength
     { ex: pullVariant,       dose: pullVariant === 'weighted-pullup' ? `4 sets × 5 reps · rest 3 min` : `${pullSets} sets × 5 reps (3-5s lower) · rest 2 min` },
     { ex: 'grip-half-crimp', dose: `5× ${gripSecs}s on / ${gripSecs}s off — LIGHT` },
     { ex: 'grip-open-drag',  dose: `5× ${gripSecs}s on / ${gripSecs}s off — LIGHT` },
@@ -103,21 +109,15 @@ function session1Steps({ warmupGrade, effGradeFlash, effGradeSub, arcGrade, pull
   return steps;
 }
 
-// Session 2 — Power Endurance. Simple structure:
-//   1. Wrist + shoulder prep
-//   2. 1 warmup route
-//   3. 4x4 workout (the main event)
-//   4. ARC cool-down (10-15 min easy climbing)
-function session2Steps({ warmupGrade, fourByFourGrade, cooldownGrade }) {
+// Session 2 — Endurance / Power Endurance. Bouldering-based 4x4s here —
+// gym top-rope doesn't have enough same-grade routes with fast belay
+// swaps. 4x4 = 4 boulders × 4 rounds = 16 problems total.
+function session2Steps({ fourByFourBoulderGrade }) {
   return [
-    // Prep block
-    { ex: 'hip-mobility',  dose: '5-7 min hip stretches — start warm' },
-    { ex: 'joint-prep',    dose: '5 min wrist + shoulder routine' },
-    // Climbing block
-    { ex: 'warmup-route',  dose: `1 easy route at ${warmupGrade}` },
-    { ex: 'route-reading', dose: 'Read the 4 routes you\'ll do before starting the 4x4' },
-    { ex: 'four-by-four',  dose: `4 routes at ${fourByFourGrade}, back-to-back · 4 rounds, 3-5 min rest between rounds` },
-    { ex: 'arc-cooldown',  dose: `10-15 min easy on ${cooldownGrade} — flush the pump` },
+    { ex: 'hip-mobility',   dose: '5-7 min hip stretches — start warm' },
+    { ex: 'joint-prep',     dose: '5 min wrist + shoulder routine' },
+    { ex: 'warmup-boulder', dose: '1 easy V0 boulder to warm up' },
+    { ex: 'four-by-four',   dose: `4 boulders at ${fourByFourBoulderGrade}, back-to-back · 4 rounds, 3-5 min rest between rounds` },
   ];
 }
 
@@ -147,30 +147,25 @@ export const PHASES = [
     name: 'Foundation',
     targetTopRope: '5.10b',
     targetBoulder: 'V3',
-    goal: "Consolidate 5.10a-b top rope. Establish movement fundamentals, tendon capacity, and the antagonist habit that keeps you climbing at 40.",
+    goal: "Get to where 5.10a-b feels EASY on top rope. You should flash 5.10b cleanly, 3 sessions in a row. Build the technique base and finger tendon capacity — the two things that matter more than strength at this level.",
     principles: [
-      "Technique is your ceiling until 5.11a — every session, name ONE thing you're working on.",
-      "Warm up like it's the workout. Cold fingers + hard grips = torn pulleys.",
-      "48 hours between hard climbing sessions. Session 4 (full body) can go on rest days.",
-      "Log every attempt — flash / send / worked. This is your motivation over months.",
+      "Technique beats strength until 5.11a. Every session, pick ONE thing to improve (foot placement, hip rotation, breath timing) and drill it.",
+      "Warm-up is training, not optional. Cold fingers + hard grips is how pulleys tear.",
+      "Give fingers 48 hours between hard sessions. Full Body can go on the rest days.",
+      "Log every climb. You won't remember the details in 6 months — the app will.",
     ],
     sessions: {
       'full-climb': {
         steps: session1Steps({
           warmupGrade: '5.7',
           effGradeFlash: '5.10a-b',
-          effGradeSub:   '5.9-5.10a',
           arcGrade: '5.7',
           pullSets: 3,
           gripSecs: 5,
         }),
       },
       'endurance': {
-        steps: session2Steps({
-          warmupGrade: '5.7',
-          fourByFourGrade: '5.8-5.9 (achievable — you should finish all 16 climbs)',
-          cooldownGrade: '5.7',
-        }),
+        steps: session2Steps({ fourByFourBoulderGrade: 'V0-V1' }),
       },
       'movement': {
         steps: session3Steps({
@@ -194,12 +189,12 @@ export const PHASES = [
     name: 'Consolidation',
     targetTopRope: '5.10d',
     targetBoulder: 'V4',
-    goal: "Flashing 5.10c-d, projecting 5.11a. Weighted pull-ups enter. ARC volume increases. This is where efficiency becomes visible under pump.",
+    goal: "Get to where 5.10c-d feels easy. You should flash 5.10d cleanly, 3 sessions in a row. Start projecting 5.11a. Weighted pull-ups enter here.",
     principles: [
-      "Grade tick-ups come from movement economy, not just strength. Time each rest position on the wall.",
-      "Weighted pull-ups replace negatives — 4 sets × 5, add ~5 lb every 2 weeks.",
-      "Grip holds bump to 7s on/off. Still low intensity.",
-      "Route-reading habitual — 60 sec on the ground before every climb.",
+      "You get harder grades from movement economy, not just brute strength. Notice the rest positions you can find on every route.",
+      "Weighted pull-ups replace negatives. Add ~5 lb every 2 weeks. No kip.",
+      "Grip holds bump to 7s on / 7s off. Still low intensity — you're building tendon capacity, not maxing out.",
+      "Read every route from the ground for 60s before you climb it. Beta upfront saves pump on the wall.",
     ],
     sessions: {
       'full-climb': {
@@ -207,7 +202,6 @@ export const PHASES = [
           ...session1Steps({
             warmupGrade: '5.7-5.8',
             effGradeFlash: '5.10c-d',
-            effGradeSub:   '5.10a-b',
             arcGrade: '5.8',
             pullSets: 4,
             pullVariant: 'weighted-pullup',
@@ -217,11 +211,7 @@ export const PHASES = [
         ],
       },
       'endurance': {
-        steps: session2Steps({
-          warmupGrade: '5.7-5.8',
-          fourByFourGrade: '5.9-5.10a',
-          cooldownGrade: '5.7-5.8',
-        }),
+        steps: session2Steps({ fourByFourBoulderGrade: 'V1-V2' }),
       },
       'movement': {
         steps: session3Steps({
@@ -245,19 +235,18 @@ export const PHASES = [
     name: 'Lead Introduction',
     targetTopRope: '5.11a',
     targetBoulder: 'V5',
-    goal: "LEAD CLIMB CERTIFICATION. Onsight 5.11a on lead, project 5.11b. Success this phase = the moment you can hook in for the rest of your climbing life.",
+    goal: "Get lead-climb certified. Onsight 5.11a on lead. Start projecting 5.11b. This is the phase where you become independent — no more waiting for a top-rope to be set for you.",
     principles: [
-      "Lead certification is THIS phase's mission. Get certified within 6-8 weeks.",
-      "Mock lead for 2 weeks before real lead. Clip mechanics automatic first.",
-      "Fall practice is mandatory — small controlled falls, twice a week. Head game matters more than strength here.",
-      "Hangboard repeaters ENTER (Phase 3+). Advanced tool — build slow. Skip if any elbow / finger tenderness.",
+      "Lead certification is this phase's #1 goal. Aim to pass within 6-8 weeks.",
+      "Mock lead (trailing a rope) for 2 weeks before your first real lead. Clip mechanics should be automatic before you leave the ground.",
+      "Fall practice is mandatory. Small controlled falls, twice a week. Head game matters more than pull strength here.",
+      "Hangboard repeaters enter here. Advanced tool — start light. Any elbow or finger tenderness = skip that day.",
     ],
     sessions: {
       'full-climb': {
         steps: session1Steps({
           warmupGrade: '5.8',
           effGradeFlash: '5.11a-b',
-          effGradeSub:   '5.10c-d',
           arcGrade: '5.9',
           pullSets: 4,
           pullVariant: 'weighted-pullup',
@@ -271,7 +260,7 @@ export const PHASES = [
           { ex: 'warmup-route',  dose: '1 easy route at 5.8' },
           { ex: 'clip-practice', dose: 'On TR at each bolt, practice clip mechanics · 1 route' },
           { ex: 'mock-lead',     dose: 'On TR trailing a lead rope, mock-clip each bolt · 1-2 routes' },
-          { ex: 'four-by-four',  dose: '4 routes at 5.10a-b · 4 rounds' },
+          { ex: 'four-by-four',  dose: '4 boulders at V1-V2 · 4 rounds, 3-5 min rest between' },
           { ex: 'arc-cooldown',  dose: '10 min easy on 5.7-5.8' },
         ],
       },
@@ -301,7 +290,7 @@ export const PHASES = [
     name: 'Mid-11s',
     targetTopRope: '5.11c',
     targetBoulder: 'V5',
-    goal: "Onsight 5.11c, project 5.12a. Serious power endurance work — this is where the 5.11-to-5.12 gap gets closed.",
+    goal: "Onsight 5.11c on lead. Project 5.12a. The 5.11-to-5.12 gap gets closed here — mostly through power endurance work.",
     principles: [
       "Projects enter — dedicated sessions to WORK a single hard route over weeks.",
       "Power endurance is the limiter now. 4x4s become non-negotiable.",
@@ -313,7 +302,6 @@ export const PHASES = [
         steps: session1Steps({
           warmupGrade: '5.8-5.9',
           effGradeFlash: '5.11b-c',
-          effGradeSub:   '5.11a',
           arcGrade: '5.9-5.10a',
           pullSets: 4,
           pullVariant: 'weighted-pullup',
@@ -325,7 +313,7 @@ export const PHASES = [
         steps: [
           { ex: 'joint-prep',    dose: '5 min routine' },
           { ex: 'warmup-route',  dose: '1 easy route at 5.8-5.9' },
-          { ex: 'four-by-four',  dose: '4 routes at 5.10c-d · 4 rounds' },
+          { ex: 'four-by-four',  dose: '4 boulders at V2-V3 · 4 rounds, 3-5 min rest between' },
           { ex: 'route-repeats', dose: '2 routes at 5.11a-b · 3 laps each · project moves on last lap' },
           { ex: 'fall-practice', dose: '3-5 falls above bolt 4, working comfort' },
           { ex: 'arc-cooldown',  dose: '10 min easy' },
@@ -356,7 +344,7 @@ export const PHASES = [
     name: 'Outdoor Prep + Low 12s',
     targetTopRope: '5.12b',
     targetBoulder: 'V6',
-    goal: "Onsight 5.11d, project 5.12b. Outdoor toolkit becomes routine — anchor building, cleaning, rope management. Multi-pitch basics.",
+    goal: "Onsight 5.11d on lead. Project 5.12b. Outdoor skills become routine — anchor building, cleaning, rope management, multi-pitch basics.",
     principles: [
       "Outdoor skills trained ON THE GROUND until automatic. Rehearse in the gym / beginner outdoor first.",
       "Projects run 4-8 weeks. Have TWO: one at redpoint level, one a grade above.",
@@ -368,7 +356,6 @@ export const PHASES = [
         steps: session1Steps({
           warmupGrade: '5.9',
           effGradeFlash: '5.11d-5.12a',
-          effGradeSub:   '5.11b-c',
           arcGrade: '5.10',
           pullSets: 4,
           pullVariant: 'weighted-pullup',
@@ -380,7 +367,7 @@ export const PHASES = [
         steps: [
           { ex: 'joint-prep',      dose: '5 min routine' },
           { ex: 'warmup-route',    dose: '1 easy route at 5.9' },
-          { ex: 'four-by-four',    dose: '4 routes at 5.11a-b · 4 rounds' },
+          { ex: 'four-by-four',    dose: '4 boulders at V3-V4 · 4 rounds, 3-5 min rest between' },
           { ex: 'route-repeats',   dose: '2 routes at 5.11c-d · 3 laps each' },
           { ex: 'anchor-building', dose: '10 min ground practice — SRENE anchor, 2 setups' },
           { ex: 'cleaning-anchor', dose: 'Practice threading + lowering on ground setup' },
@@ -414,7 +401,7 @@ export const PHASES = [
     name: 'Goal Grade — 5.12d',
     targetTopRope: '5.12d',
     targetBoulder: 'V7',
-    goal: "SEND 5.12d. Whether outdoor or indoor. This phase is individualized — you know your body now. Project cycles, peaking, dedicated rest.",
+    goal: "Send 5.12d. Indoor or outdoor. This phase is on you — you know your body, your patterns, your limiters. Project cycles, peaking, dedicated rest weeks.",
     principles: [
       "Structure is your own now. Match training to what the project demands.",
       "Peak periodization: 3-week hard training block → 1 week light → project attempts.",
@@ -439,7 +426,7 @@ export const PHASES = [
         steps: [
           { ex: 'joint-prep',    dose: '5 min routine' },
           { ex: 'warmup-route',  dose: '1 easy route' },
-          { ex: 'four-by-four',  dose: '4 routes at 5.11c-d · 4 rounds' },
+          { ex: 'four-by-four',  dose: '4 boulders at V4-V5 · 4 rounds, 3-5 min rest between' },
           { ex: 'route-repeats', dose: 'Project laps — climb the project in sections, work each crux' },
           { ex: 'fall-practice', dose: 'Big-air whippers — where the project demands commitment' },
         ],
