@@ -2,34 +2,34 @@ import Sheet from './Sheet.jsx';
 import { useStore } from '../store.jsx';
 import { useEffect, useMemo, useState } from 'react';
 import { getExercise } from '../data/exercises.js';
-import { gradesFor, STYLE_LABELS } from '../data/grades.js';
+import { gradesFor } from '../data/grades.js';
 import { today } from '../utils/dates.js';
 
 // Multi-climb log sheet for on-wall session steps. Style is FIXED per
-// exercise (ex.style === 'toprope' | 'boulder'); no toggle. Grade grid,
-// styling, and log record all inherit from that fixed style.
+// exercise (ex.style === 'toprope' | 'boulder').
 //
-// Layout — single screen for 5-6 climbs without leaving:
-//   1. How-to (from ex.cue) + style badge
-//   2. List of climbs already logged for THIS session step today, × to delete
-//   3. Add-a-climb form (name, grade, result, difficulty, notes)
-//   4. "+ Add this climb" clears form for next
-//   5. "Done" closes
+// Layout — logging up top, explainers at bottom (user preference):
+//   1. Style badge
+//   2. Optional drill picker (for movement-drill — pick which drill)
+//   3. List of climbs already logged for THIS session step today
+//   4. Add-a-climb form (name, grade, result, difficulty, notes)
+//   5. "+ Add this climb" appends and clears form
+//   6. "Done" closes
+//   7. How-to + why AT THE BOTTOM (reference material, not the main event)
 export default function ClimbLogSheet({
   open, onClose, exerciseId, sessionType,
 }) {
   const { data, actions } = useStore();
 
-  // Add-a-climb form state
   const [routeName, setRouteName]   = useState('');
   const [grade, setGrade]           = useState('');
   const [result, setResult]         = useState('flash'); // flash | complete | fail
   const [difficulty, setDifficulty] = useState(5);
   const [notes, setNotes]           = useState('');
+  const [drillFocus, setDrillFocus] = useState(null);    // key of selected drill (if applicable)
 
   const todayStr = today();
 
-  // Climbs already logged for this exercise/session today.
   const climbsThisSession = useMemo(() => {
     if (!exerciseId || !sessionType) return [];
     const climbs = [];
@@ -48,6 +48,7 @@ export default function ClimbLogSheet({
   useEffect(() => {
     if (open) {
       setRouteName(''); setGrade(''); setResult('flash'); setDifficulty(5); setNotes('');
+      setDrillFocus(null);
     }
   }, [open, exerciseId]);
 
@@ -56,6 +57,7 @@ export default function ClimbLogSheet({
   const style = ex.style || 'toprope';
   const list = gradesFor(style);
   const cue = ex.cueByStyle?.[style] || ex.cue;
+  const drillOptions = ex.drillOptions;
 
   const addClimb = () => {
     if (!grade) return;
@@ -71,16 +73,18 @@ export default function ClimbLogSheet({
       date: todayStr,
       sessionType,
       exerciseId,
+      ...(drillFocus ? { drillFocus } : {}),
     });
-    // Clear per-climb fields (keep style — usually on same style all session)
     setRouteName(''); setGrade(''); setResult('flash'); setDifficulty(5); setNotes('');
+    // Keep drillFocus — user drills ONE thing per session, don't force
+    // them to re-pick after every logged attempt.
   };
 
   return (
     <Sheet open={open} onClose={onClose} title={ex.name} fullHeight>
       <div className="px-5 py-4 space-y-4">
 
-        {/* Style badge (fixed per exercise, not user-selectable) */}
+        {/* Style badge */}
         <div className="flex items-center gap-2">
           <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded font-semibold ${
             style === 'toprope' ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40' :
@@ -90,17 +94,28 @@ export default function ClimbLogSheet({
           </span>
         </div>
 
-        {cue && (
-          <div>
-            <div className="text-xs uppercase tracking-wide text-zinc-500 mb-1">How-to</div>
-            <p className="text-sm text-zinc-300 leading-relaxed whitespace-pre-line">{cue}</p>
-          </div>
-        )}
-
-        {ex.why && (
-          <div>
-            <div className="text-xs uppercase tracking-wide text-zinc-500 mb-1">Why</div>
-            <p className="text-xs text-zinc-400 italic leading-relaxed">{ex.why}</p>
+        {/* Drill picker — only shown if exercise has drillOptions (movement drills) */}
+        {drillOptions && drillOptions.length > 0 && (
+          <div className="bg-zinc-800/60 border border-zinc-700 rounded-xl p-3">
+            <div className="text-[10px] uppercase tracking-wide text-zinc-500 mb-1.5">
+              Drill focus — pick ONE
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {drillOptions.map((d) => (
+                <button
+                  key={d.key}
+                  onClick={() => setDrillFocus(d.key === drillFocus ? null : d.key)}
+                  className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border ${
+                    drillFocus === d.key
+                      ? 'bg-orange-500 text-zinc-950 border-orange-500'
+                      : 'bg-zinc-800 border-zinc-700 text-zinc-300 hover:border-zinc-600'
+                  }`}
+                >{d.label}</button>
+              ))}
+            </div>
+            <div className="mt-2 text-[10px] text-zinc-500">
+              Locked in on each logged climb. See how-to at the bottom for full drill details.
+            </div>
           </div>
         )}
 
@@ -111,26 +126,34 @@ export default function ClimbLogSheet({
               This session · {climbsThisSession.length} climb{climbsThisSession.length === 1 ? '' : 's'}
             </div>
             <ul className="space-y-1.5">
-              {climbsThisSession.map((c) => (
-                <li key={c.id} className="bg-zinc-800/60 border border-zinc-800 rounded-lg px-3 py-2 flex items-center gap-2 text-xs">
-                  <span className="tabular-nums text-orange-300 text-sm font-bold w-14 flex-shrink-0">{c.grade}</span>
-                  <div className="flex-1 min-w-0">
-                    {c.routeName
-                      ? <div className="text-zinc-100 truncate">{c.routeName}</div>
-                      : <div className="text-zinc-500 italic">(unnamed)</div>}
-                    {c.notes && <div className="text-zinc-500 truncate text-[10px] mt-0.5">{c.notes}</div>}
-                  </div>
-                  <ResultChip result={c.result} />
-                  <span className="text-[10px] text-zinc-400 tabular-nums flex-shrink-0">
-                    {c.difficulty}/10
-                  </span>
-                  <button
-                    onClick={() => actions.removeGradeAttempt(c.style, c.id)}
-                    className="text-zinc-500 hover:text-rose-400 text-sm px-1 flex-shrink-0"
-                    aria-label="Delete this climb"
-                  >×</button>
-                </li>
-              ))}
+              {climbsThisSession.map((c) => {
+                const drillLabel = c.drillFocus
+                  ? drillOptions?.find((d) => d.key === c.drillFocus)?.label
+                  : null;
+                return (
+                  <li key={c.id} className="bg-zinc-800/60 border border-zinc-800 rounded-lg px-3 py-2 flex items-center gap-2 text-xs">
+                    <span className="tabular-nums text-orange-300 text-sm font-bold w-14 flex-shrink-0">{c.grade}</span>
+                    <div className="flex-1 min-w-0">
+                      {c.routeName
+                        ? <div className="text-zinc-100 truncate">{c.routeName}</div>
+                        : <div className="text-zinc-500 italic">(unnamed)</div>}
+                      {drillLabel && (
+                        <div className="text-[10px] text-orange-300/80 mt-0.5">drill: {drillLabel}</div>
+                      )}
+                      {c.notes && <div className="text-zinc-500 truncate text-[10px] mt-0.5">{c.notes}</div>}
+                    </div>
+                    <ResultChip result={c.result} />
+                    <span className="text-[10px] text-zinc-400 tabular-nums flex-shrink-0">
+                      {c.difficulty}/10
+                    </span>
+                    <button
+                      onClick={() => actions.removeGradeAttempt(c.style, c.id)}
+                      className="text-zinc-500 hover:text-rose-400 text-sm px-1 flex-shrink-0"
+                      aria-label="Delete this climb"
+                    >×</button>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}
@@ -227,6 +250,23 @@ export default function ClimbLogSheet({
         >
           Done · {climbsThisSession.length} logged
         </button>
+
+        {/* Explainers at the bottom — reference material, not the main event */}
+        {(cue || ex.why) && (
+          <details className="pt-2 border-t border-zinc-800">
+            <summary className="text-xs uppercase tracking-wide text-zinc-500 cursor-pointer py-2">
+              How-to · tap to expand
+            </summary>
+            <div className="space-y-3 pt-2">
+              {cue && (
+                <p className="text-sm text-zinc-300 leading-relaxed whitespace-pre-line">{cue}</p>
+              )}
+              {ex.why && (
+                <p className="text-xs text-zinc-400 italic leading-relaxed">{ex.why}</p>
+              )}
+            </div>
+          </details>
+        )}
       </div>
     </Sheet>
   );

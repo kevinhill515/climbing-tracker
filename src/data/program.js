@@ -19,15 +19,15 @@ export const SESSION_META = {
     name:  'Full Climb',
     color: 'orange',
     icon:  '◔',
-    focus: 'Full protocol — efficiency, ARC, pull + finger work',
-    time:  '90–110 min',
+    focus: 'Skill + strength — efficiency, pull, finger tendon work',
+    time:  '80–95 min',
   },
   'endurance': {
     name:  'Endurance',
     color: 'amber',
     icon:  '◑',
-    focus: 'Power endurance — 4x4s',
-    time:  '60–75 min',
+    focus: 'Volume — TR laps + repeats · light boulder finisher',
+    time:  '90–100 min',
   },
   'movement': {
     name:  'Movement',
@@ -88,16 +88,16 @@ const SESSION_4_STEPS = [
 //   4. ARC training              (endurance base)
 //   5. Pull-up negatives         (strength — after warmup and hard route work)
 //   6. 3 grip positions          (finger tendon capacity — low intensity finisher)
+// Session 1 — Full Climb. Skill (efficiency) + strength (pull + finger
+// tendon work). Laps go on the Endurance day; here just a short cool-down
+// after the hard efficiency block.
 function session1Steps({ warmupGrade, effGradeFlash, arcGrade, pullSets, pullVariant = 'pullup-negative', gripSecs, hangboard = false }) {
   const steps = [
-    // Prep
     { ex: 'hip-mobility',    dose: '5-7 min hip stretches — start warm' },
     { ex: 'joint-prep',      dose: '5 min wrist + shoulder routine' },
-    // Top rope block
     { ex: 'warmup-route',    dose: `1 easy route at ${warmupGrade}` },
     { ex: 'efficiency-work', dose: `2-3 routes at ${effGradeFlash}, 2 attempts each, ONE focus per attempt · ~40 min` },
-    { ex: 'arc-training',    dose: `3-4 laps on a ${arcGrade}, minimal rest between (belay swap = your rest)` },
-    // Off-the-wall strength
+    // Off-the-wall strength block (comes after the hard climbing so climbing is fresh)
     { ex: pullVariant,       dose: pullVariant === 'weighted-pullup' ? `4 sets × 5 reps · rest 3 min` : `${pullSets} sets × 5 reps (3-5s lower) · rest 2 min` },
     { ex: 'grip-half-crimp', dose: `5× ${gripSecs}s on / ${gripSecs}s off — LIGHT` },
     { ex: 'grip-open-drag',  dose: `5× ${gripSecs}s on / ${gripSecs}s off — LIGHT` },
@@ -106,13 +106,14 @@ function session1Steps({ warmupGrade, effGradeFlash, arcGrade, pullSets, pullVar
   if (hangboard) {
     steps.push({ ex: 'hangboard-repeaters', dose: 'Optional — only when everything above feels easy' });
   }
+  // Short TR cool-down (heavy laps belong on Endurance day)
+  steps.push({ ex: 'arc-training', dose: `1-2 easy laps on ${arcGrade} — cool down (long laps live on Endurance day)` });
   return steps;
 }
 
-// Session 2 — Endurance. TR-primary since top rope IS endurance climbing
-// (longer routes = more sustained pulling). Light bouldering cool-down
-// so it doesn't overtrain the aerobic system.
-function session2Steps({ warmupGrade, arcGrade, repeatGrade }) {
+// Session 2 — Endurance. Volume day: TR laps are the whole point. Route
+// repeats added from Phase 2+. Boulder cool-down closes the day.
+function session2Steps({ warmupGrade, arcGrade, arcLaps = 6, repeatGrade, repeatRoutes = 2, repeatLaps = 2 }) {
   const steps = [
     { ex: 'hip-mobility',    dose: '5-7 min hip stretches — start warm' },
     { ex: 'joint-prep',      dose: '5 min wrist + shoulder routine' },
@@ -121,12 +122,12 @@ function session2Steps({ warmupGrade, arcGrade, repeatGrade }) {
   if (repeatGrade) {
     steps.push({
       ex: 'route-repeats',
-      dose: `2 routes at ${repeatGrade}, 2 laps each · 3-5 min rest between laps`,
+      dose: `${repeatRoutes} routes at ${repeatGrade}, ${repeatLaps} laps each · 3-5 min rest between laps · the pump-tolerance work`,
     });
   }
   steps.push({
     ex: 'arc-training',
-    dose: `3-4 laps on a ${arcGrade}, minimal rest between (belay swap = your rest)`,
+    dose: `${arcLaps} laps on ${arcGrade}, minimal rest between (belay swap = your rest) · the aerobic base`,
   });
   steps.push({
     ex: 'boulder-cooldown',
@@ -185,7 +186,9 @@ export const PHASES = [
         steps: session2Steps({
           warmupGrade: '5.7',
           arcGrade: '5.7',
-          // No route repeats in Phase 1 — build the endurance base first.
+          arcLaps: 6,
+          // No route repeats in Phase 1 — build the aerobic base first
+          // via a long block of easy laps.
         }),
       },
       'movement': {
@@ -235,7 +238,10 @@ export const PHASES = [
         steps: session2Steps({
           warmupGrade: '5.7-5.8',
           repeatGrade: '5.9-5.10a',
+          repeatRoutes: 3,
+          repeatLaps: 2,
           arcGrade: '5.7-5.8',
+          arcLaps: 5,
         }),
       },
       'movement': {
@@ -284,8 +290,8 @@ export const PHASES = [
           { ex: 'hip-mobility',    dose: '5-7 min hip stretches — start warm' },
           { ex: 'joint-prep',      dose: '5 min wrist + shoulder routine' },
           { ex: 'warmup-route',    dose: '1 easy route at 5.8' },
-          { ex: 'route-repeats',   dose: '2 routes at 5.10a-b, 2 laps each · 3-5 min rest between laps' },
-          { ex: 'arc-training',    dose: '3-4 laps on 5.8, minimal rest between' },
+          { ex: 'route-repeats',   dose: '3 routes at 5.10a-b · 2 laps each · 3-5 min rest between laps' },
+          { ex: 'arc-training',    dose: '5-6 laps on 5.8 — belay-swap rests, easy pace' },
           { ex: 'clip-practice',   dose: 'On TR at each bolt, practice clip mechanics · 1 route' },
           { ex: 'mock-lead',       dose: 'On TR trailing a lead rope, mock-clip each bolt · 1-2 routes' },
           { ex: 'boulder-cooldown',dose: '2-3 easy boulders (V0-V1) — complementary movement' },
@@ -343,8 +349,8 @@ export const PHASES = [
           { ex: 'hip-mobility',    dose: '5-7 min hip stretches — start warm' },
           { ex: 'joint-prep',      dose: '5 min wrist + shoulder routine' },
           { ex: 'warmup-route',    dose: '1 easy route at 5.8-5.9' },
-          { ex: 'route-repeats',   dose: '2 routes at 5.11a-b · 3 laps each · project moves on last lap' },
-          { ex: 'arc-training',    dose: '3-4 laps on 5.8-5.9, minimal rest between' },
+          { ex: 'route-repeats',   dose: '3 routes at 5.11a-b · 3 laps each · project moves on last lap' },
+          { ex: 'arc-training',    dose: '5-6 laps on 5.8-5.9 — belay-swap rests, easy pace' },
           { ex: 'fall-practice',   dose: '3-5 falls above bolt 4, working comfort' },
           { ex: 'boulder-cooldown',dose: '2-3 easy boulders (V0-V2) — complementary movement' },
         ],
@@ -400,8 +406,8 @@ export const PHASES = [
           { ex: 'hip-mobility',    dose: '5-7 min hip stretches — start warm' },
           { ex: 'joint-prep',      dose: '5 min wrist + shoulder routine' },
           { ex: 'warmup-route',    dose: '1 easy route at 5.9' },
-          { ex: 'route-repeats',   dose: '2 routes at 5.11c-d · 3 laps each' },
-          { ex: 'arc-training',    dose: '3-4 laps on 5.9, minimal rest between' },
+          { ex: 'route-repeats',   dose: '3 routes at 5.11c-d · 3 laps each' },
+          { ex: 'arc-training',    dose: '5-6 laps on 5.9 — belay-swap rests, easy pace' },
           { ex: 'anchor-building', dose: '10 min ground practice — SRENE anchor, 2 setups' },
           { ex: 'cleaning-anchor', dose: 'Practice threading + lowering on ground setup' },
           { ex: 'boulder-cooldown',dose: '2-3 easy boulders (V0-V2) — complementary movement' },
@@ -462,8 +468,8 @@ export const PHASES = [
           { ex: 'hip-mobility',    dose: '5-7 min hip stretches — start warm' },
           { ex: 'joint-prep',      dose: '5 min wrist + shoulder routine' },
           { ex: 'warmup-route',    dose: '1 easy route' },
-          { ex: 'route-repeats',   dose: 'Project laps — climb the project in sections, work each crux' },
-          { ex: 'arc-training',    dose: '3-4 laps on 5.10, minimal rest between' },
+          { ex: 'route-repeats',   dose: 'Project laps — climb the project in sections, work each crux · 3-4 focused laps' },
+          { ex: 'arc-training',    dose: '5-6 laps on 5.10 — belay-swap rests, easy pace' },
           { ex: 'fall-practice',   dose: 'Big-air whippers — where the project demands commitment' },
           { ex: 'boulder-cooldown',dose: '2-3 easy boulders — light complementary movement' },
         ],

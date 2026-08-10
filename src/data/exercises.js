@@ -134,6 +134,15 @@ export const EXERCISES = {
   'movement-drill': {
     style: 'toprope',
     name: 'Movement drill (pick ONE per session)',
+    // Drill options shown in ClimbLogSheet as a picker chip row.
+    // Each attempt logs `drillFocus: <key>` for future analytics + display.
+    drillOptions: [
+      { key: 'silent-feet',      label: 'Silent feet' },
+      { key: 'drop-knee',        label: 'Drop knee' },
+      { key: 'flag',             label: 'Flag' },
+      { key: 'hand-foot-match',  label: 'Hand-foot match' },
+      { key: 'outside-edge',     label: 'Outside edge / hip-in' },
+    ],
     cue:
       "Pick ONE of these each session and drill it deep for 15-20 min on 2-3 easy routes. Rotate weekly — the goal is to make each pattern automatic.\n\n" +
       "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
@@ -198,7 +207,7 @@ export const EXERCISES = {
       "Sloppy footwork is the difference between 5.10 and 5.11 for most climbers. Force-training precision at low grades builds it into your default.",
   },
   'no-hands-slab': {
-    style: 'toprope',
+    style: 'boulder',
     on_wall: true,
     name: 'No-hands slab',
     cue:
