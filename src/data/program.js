@@ -68,12 +68,16 @@ const SESSION_4_STEPS = [
 //   4. ARC training              (endurance base)
 //   5. Pull-up negatives         (strength — after warmup and hard route work)
 //   6. 3 grip positions          (finger tendon capacity — low intensity finisher)
-function session1Steps({ warmupGrade, effGrade, arcGrade, pullSets, pullVariant = 'pullup-negative', gripSecs, hangboard = false }) {
+function session1Steps({ warmupGrade, effGradeFlash, effGradeSub, arcGrade, pullSets, pullVariant = 'pullup-negative', gripSecs, hangboard = false }) {
   const steps = [
-    { ex: 'joint-prep',      dose: '5 min routine' },
+    // Prep block (hip mobility first, then joint prep — both before climbing)
+    { ex: 'hip-mobility',    dose: '5-7 min hip stretches — start warm' },
+    { ex: 'joint-prep',      dose: '5 min wrist + shoulder routine' },
+    // Climbing block
     { ex: 'warmup-route',    dose: `1 easy route at ${warmupGrade}` },
-    { ex: 'efficiency-work', dose: `3-5 routes at ${effGrade}, ONE focus per attempt · 30-40 min` },
+    { ex: 'efficiency-work', dose: `TR: 3 routes at ${effGradeFlash} + 3 routes at ${effGradeSub}, 1-2 attempts each, ONE focus per attempt · 45 min` },
     { ex: 'arc-training',    dose: `20-30 min continuous on ${arcGrade}, conversation pace` },
+    // Strength / finger tendon block (after climbing so climbing is fresh work)
     { ex: pullVariant,       dose: pullVariant === 'weighted-pullup' ? `4 sets × 5 reps · rest 3 min` : `${pullSets} sets × 5 reps (3-5s lower) · rest 2 min` },
     { ex: 'grip-half-crimp', dose: `5× ${gripSecs}s on / ${gripSecs}s off — LIGHT` },
     { ex: 'grip-open-drag',  dose: `5× ${gripSecs}s on / ${gripSecs}s off — LIGHT` },
@@ -82,8 +86,6 @@ function session1Steps({ warmupGrade, effGrade, arcGrade, pullSets, pullVariant 
   if (hangboard) {
     steps.push({ ex: 'hangboard-repeaters', dose: 'Optional — only when everything above feels easy' });
   }
-  // Hip mobility at the very end when the body is warm.
-  steps.push({ ex: 'hip-mobility', dose: '5-7 min · body is warm, hip stretches actually take' });
   return steps;
 }
 
@@ -94,19 +96,24 @@ function session1Steps({ warmupGrade, effGrade, arcGrade, pullSets, pullVariant 
 //   4. ARC cool-down (10-15 min easy climbing)
 function session2Steps({ warmupGrade, fourByFourGrade, cooldownGrade }) {
   return [
-    { ex: 'joint-prep',    dose: '5 min routine' },
+    // Prep block
+    { ex: 'hip-mobility',  dose: '5-7 min hip stretches — start warm' },
+    { ex: 'joint-prep',    dose: '5 min wrist + shoulder routine' },
+    // Climbing block
     { ex: 'warmup-route',  dose: `1 easy route at ${warmupGrade}` },
     { ex: 'route-reading', dose: 'Read the 4 routes you\'ll do before starting the 4x4' },
     { ex: 'four-by-four',  dose: `4 routes at ${fourByFourGrade}, back-to-back · 4 rounds, 3-5 min rest between rounds` },
     { ex: 'arc-cooldown',  dose: `10-15 min easy on ${cooldownGrade} — flush the pump` },
-    { ex: 'hip-mobility',  dose: '5-7 min hip stretches while warm' },
   ];
 }
 
 // Session 3 — Movement + Power. Bouldering block + ONE deep drill.
 function session3Steps({ boulderGrade, driveGrade, includeLead = false }) {
   const steps = [
-    { ex: 'joint-prep',      dose: '5 min routine' },
+    // Prep block
+    { ex: 'hip-mobility',    dose: '5-7 min hip stretches — start warm' },
+    { ex: 'joint-prep',      dose: '5 min wrist + shoulder routine' },
+    // Climbing block
     { ex: 'warmup-boulder',  dose: '1 easy V0 boulder or short traverse' },
     { ex: 'boulder-block',   dose: `30-45 min at ${boulderGrade}, quality over volume, 3-5 min rest` },
     { ex: 'movement-drill',  dose: `Pick ONE drill and go deep · 2-3 routes at ${driveGrade}` },
@@ -115,7 +122,6 @@ function session3Steps({ boulderGrade, driveGrade, includeLead = false }) {
   if (includeLead) {
     steps.push({ ex: 'clip-practice', dose: 'On top rope, practice clip mechanics at each bolt · 1 route' });
   }
-  steps.push({ ex: 'hip-mobility', dose: '5-7 min hip stretches while warm' });
   return steps;
 }
 
@@ -138,7 +144,8 @@ export const PHASES = [
       'Session 1': {
         steps: session1Steps({
           warmupGrade: '5.7',
-          effGrade: '5.10a-b (flash grade)',
+          effGradeFlash: '5.10a-b',
+          effGradeSub:   '5.9-5.10a',
           arcGrade: '5.7',
           pullSets: 3,
           gripSecs: 5,
@@ -185,7 +192,8 @@ export const PHASES = [
         steps: [
           ...session1Steps({
             warmupGrade: '5.7-5.8',
-            effGrade: '5.10c-d',
+            effGradeFlash: '5.10c-d',
+            effGradeSub:   '5.10a-b',
             arcGrade: '5.8',
             pullSets: 4,
             pullVariant: 'weighted-pullup',
@@ -234,7 +242,8 @@ export const PHASES = [
       'Session 1': {
         steps: session1Steps({
           warmupGrade: '5.8',
-          effGrade: '5.11a-b',
+          effGradeFlash: '5.11a-b',
+          effGradeSub:   '5.10c-d',
           arcGrade: '5.9',
           pullSets: 4,
           pullVariant: 'weighted-pullup',
@@ -289,7 +298,8 @@ export const PHASES = [
       'Session 1': {
         steps: session1Steps({
           warmupGrade: '5.8-5.9',
-          effGrade: '5.11b-c',
+          effGradeFlash: '5.11b-c',
+          effGradeSub:   '5.11a',
           arcGrade: '5.9-5.10a',
           pullSets: 4,
           pullVariant: 'weighted-pullup',
@@ -343,7 +353,8 @@ export const PHASES = [
       'Session 1': {
         steps: session1Steps({
           warmupGrade: '5.9',
-          effGrade: '5.11d-5.12a',
+          effGradeFlash: '5.11d-5.12a',
+          effGradeSub:   '5.11b-c',
           arcGrade: '5.10',
           pullSets: 4,
           pullVariant: 'weighted-pullup',

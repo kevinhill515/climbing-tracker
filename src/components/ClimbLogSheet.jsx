@@ -18,19 +18,23 @@ export default function ClimbLogSheet({
 }) {
   const { actions } = useStore();
   const [style, setStyle]           = useState(defaultStyle);
+  const [routeName, setRouteName]   = useState('');
   const [grade, setGrade]           = useState('');
   const [result, setResult]         = useState('flash'); // 'flash' | 'complete' | 'fail'
   const [difficulty, setDifficulty] = useState(5);
   const [notes, setNotes]           = useState('');
+  const [saveMsg, setSaveMsg]       = useState('');
 
   // Reset state each time the sheet opens on a fresh exercise
   useEffect(() => {
     if (open) {
       setStyle(defaultStyle);
+      setRouteName('');
       setGrade('');
       setResult('flash');
       setDifficulty(5);
       setNotes('');
+      setSaveMsg('');
     }
   }, [open, exerciseId, defaultStyle]);
 
@@ -38,21 +42,40 @@ export default function ClimbLogSheet({
   const ex = getExercise(exerciseId);
   const list = gradesFor(style);
 
-  const submit = () => {
-    if (!grade) return;
+  // Core save logic — shared between "Save" (closes) and "Save & log another".
+  const saveAttempt = () => {
+    if (!grade) return false;
     actions.logGradeAttempt(style, {
       grade,
+      routeName: routeName.trim() || undefined,
       sent: result !== 'fail',
       flash: result === 'flash',
-      result,                    // new richer field ('flash'|'complete'|'fail')
+      result,
       difficulty,
       attempts: 1,
       notes: notes.trim(),
       date: today(),
-      sessionType,               // scopes count to this session
-      exerciseId,                // ties to the specific session step
+      sessionType,
+      exerciseId,
     });
-    onClose();
+    return true;
+  };
+
+  const submitAndClose = () => {
+    if (saveAttempt()) onClose();
+  };
+
+  const submitAndContinue = () => {
+    if (!saveAttempt()) return;
+    // Keep style; reset the per-climb fields
+    setRouteName('');
+    setGrade('');
+    setResult('flash');
+    setDifficulty(5);
+    setNotes('');
+    setSaveMsg(`Logged. Enter next climb.`);
+    // Clear the message after a couple seconds
+    setTimeout(() => setSaveMsg(''), 2500);
   };
 
   return (
@@ -100,6 +123,16 @@ export default function ClimbLogSheet({
               }`}
             >{STYLE_LABELS.boulder}</button>
           </div>
+
+          {/* Route / problem name */}
+          <div className="text-[10px] uppercase tracking-wide text-zinc-500 mb-1">Route or problem name</div>
+          <input
+            type="text"
+            value={routeName}
+            onChange={(e) => setRouteName(e.target.value)}
+            placeholder="e.g. Yellow overhang, The Prow, unnamed pink"
+            className="mb-3 w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500"
+          />
 
           {/* Grade grid */}
           <div className="text-[10px] uppercase tracking-wide text-zinc-500 mb-1">Scale</div>
@@ -180,13 +213,31 @@ export default function ClimbLogSheet({
             className="mt-2 w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500"
           />
 
-          <button
-            onClick={submit}
-            disabled={!grade}
-            className="mt-3 w-full bg-orange-500 hover:bg-orange-400 disabled:bg-zinc-700 disabled:text-zinc-500 text-zinc-950 font-bold rounded-2xl py-3"
-          >
-            Save attempt
-          </button>
+          {saveMsg && (
+            <div className="mt-2 text-xs text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 rounded-lg px-3 py-2">
+              ✓ {saveMsg}
+            </div>
+          )}
+
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button
+              onClick={submitAndClose}
+              disabled={!grade}
+              className="bg-zinc-800 hover:bg-zinc-700 disabled:bg-zinc-900 disabled:text-zinc-600 text-zinc-100 font-bold rounded-2xl py-3 text-sm"
+            >
+              Save & close
+            </button>
+            <button
+              onClick={submitAndContinue}
+              disabled={!grade}
+              className="bg-orange-500 hover:bg-orange-400 disabled:bg-zinc-700 disabled:text-zinc-500 text-zinc-950 font-bold rounded-2xl py-3 text-sm"
+            >
+              Save & log another →
+            </button>
+          </div>
+          <div className="mt-1 text-[10px] text-zinc-500 text-center">
+            Log each climb one at a time. "Save & log another" clears the form for the next route.
+          </div>
         </div>
       </div>
     </Sheet>
