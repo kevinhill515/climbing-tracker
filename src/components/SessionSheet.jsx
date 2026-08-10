@@ -68,7 +68,7 @@ export default function SessionSheet({ open, onClose, sessionType, phase }) {
 
   return (
     <>
-      <Sheet open={open} onClose={onClose} title={`${sessionType} — Phase ${phase.id}`} fullHeight>
+      <Sheet open={open} onClose={onClose} title={`${meta?.name || sessionType} · Phase ${phase.id}`} fullHeight>
         <div className="px-5 py-4 space-y-4">
           {isDone && (
             <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl px-3 py-2 text-sm text-orange-300 flex items-start gap-2">
@@ -86,62 +86,81 @@ export default function SessionSheet({ open, onClose, sessionType, phase }) {
             <div className="text-[11px] text-zinc-500 mt-0.5">{meta.time}</div>
           </div>
 
-          <div className="space-y-2">
-            {session.steps.map((step, i) => {
+          {/* Steps grouped by kind: Prep → On Wall → Off Wall */}
+          {(() => {
+            const buckets = { prep: [], wall: [], off: [] };
+            session.steps.forEach((step, i) => {
               const ex = getExercise(step.ex);
-              const count = todayCounts[step.ex] || 0;
               const kind = ex.on_wall ? 'wall' : ex.checklist ? 'prep' : 'off';
-              const badgeStyle =
-                kind === 'wall' ? 'bg-orange-500/25 text-orange-200' :
-                kind === 'prep' ? 'bg-violet-500/25 text-violet-200' :
-                'bg-zinc-700 text-zinc-300';
-              return (
-                <button
-                  key={i}
-                  onClick={() => {
-                    if (ex.checklist) {
-                      setPrepOpen({ id: step.ex });
-                    } else if (ex.on_wall) {
-                      setClimbOpen({ id: step.ex, prescription: step.dose });
-                    } else {
-                      setExerciseOpen({ id: step.ex, prescription: step.dose });
-                    }
-                  }}
-                  className={`w-full text-left bg-zinc-800/50 hover:bg-zinc-800 border rounded-xl p-3 transition active:scale-[0.99] ${count > 0 ? 'border-orange-500/40' : 'border-zinc-800'}`}
-                >
-                  <div className="flex items-start gap-3">
-                    <span className={`mt-0.5 inline-flex w-6 h-6 rounded-full ${badgeStyle} text-[11px] items-center justify-center flex-shrink-0 font-bold`}>
-                      {i + 1}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-medium text-zinc-100">{ex.name}</span>
-                        {kind === 'wall' && (
-                          <span className="text-[9px] uppercase tracking-wider bg-orange-500/20 text-orange-300 px-1.5 py-0.5 rounded">
-                            On wall
-                          </span>
-                        )}
-                        {kind === 'prep' && (
-                          <span className="text-[9px] uppercase tracking-wider bg-violet-500/20 text-violet-300 px-1.5 py-0.5 rounded">
-                            Prep
-                          </span>
-                        )}
+              buckets[kind].push({ step, ex, i });
+            });
+            const groups = [
+              { key: 'prep', label: 'Prep',            color: 'violet',  items: buckets.prep },
+              { key: 'wall', label: 'On the wall',     color: 'orange',  items: buckets.wall },
+              { key: 'off',  label: 'Off the wall',    color: 'zinc',    items: buckets.off  },
+            ].filter((g) => g.items.length > 0);
+
+            return (
+              <div className="space-y-4">
+                {groups.map((group) => (
+                  <div key={group.key} className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className={`h-2.5 w-2.5 rounded-sm ${
+                        group.color === 'orange' ? 'bg-orange-400' :
+                        group.color === 'violet' ? 'bg-violet-400' :
+                        'bg-zinc-500'
+                      }`} />
+                      <div className={`text-[11px] uppercase tracking-wider font-semibold ${
+                        group.color === 'orange' ? 'text-orange-300' :
+                        group.color === 'violet' ? 'text-violet-300' :
+                        'text-zinc-400'
+                      }`}>
+                        {group.label}
                       </div>
-                      <div className="text-xs text-zinc-400 mt-0.5">{step.dose}</div>
+                      <div className="text-[10px] text-zinc-600">· {group.items.length}</div>
                     </div>
-                    {count > 0 ? (
-                      <span className="flex items-center gap-1 text-xs text-orange-300 bg-orange-500/15 border border-orange-500/30 rounded-full px-2 py-0.5 flex-shrink-0">
-                        <span className="text-orange-400">✓</span>
-                        <span className="tabular-nums">{count}×</span>
-                      </span>
-                    ) : (
-                      <span className="text-zinc-500">›</span>
-                    )}
+                    {group.items.map(({ step, ex, i }) => {
+                      const count = todayCounts[step.ex] || 0;
+                      const kind = group.key;
+                      const badgeStyle =
+                        kind === 'wall' ? 'bg-orange-500/25 text-orange-200' :
+                        kind === 'prep' ? 'bg-violet-500/25 text-violet-200' :
+                        'bg-zinc-700 text-zinc-300';
+                      return (
+                        <button
+                          key={i}
+                          onClick={() => {
+                            if (ex.checklist) setPrepOpen({ id: step.ex });
+                            else if (ex.on_wall) setClimbOpen({ id: step.ex, prescription: step.dose });
+                            else setExerciseOpen({ id: step.ex, prescription: step.dose });
+                          }}
+                          className={`w-full text-left bg-zinc-800/50 hover:bg-zinc-800 border rounded-xl p-3 transition active:scale-[0.99] ${count > 0 ? 'border-orange-500/40' : 'border-zinc-800'}`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <span className={`mt-0.5 inline-flex w-6 h-6 rounded-full ${badgeStyle} text-[11px] items-center justify-center flex-shrink-0 font-bold`}>
+                              {i + 1}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-zinc-100">{ex.name}</div>
+                              <div className="text-xs text-zinc-400 mt-0.5">{step.dose}</div>
+                            </div>
+                            {count > 0 ? (
+                              <span className="flex items-center gap-1 text-xs text-orange-300 bg-orange-500/15 border border-orange-500/30 rounded-full px-2 py-0.5 flex-shrink-0">
+                                <span className="text-orange-400">✓</span>
+                                <span className="tabular-nums">{count}×</span>
+                              </span>
+                            ) : (
+                              <span className="text-zinc-500">›</span>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
-                </button>
-              );
-            })}
-          </div>
+                ))}
+              </div>
+            );
+          })()}
 
           {/* Bottom action */}
           {!isDone ? (

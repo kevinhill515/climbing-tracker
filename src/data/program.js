@@ -2,32 +2,46 @@
 // Top-rope focused with bouldering as a movement / power supplement.
 // End goal: 5.12d, lead-climb certified, prepared for outdoor.
 
-export const SESSION_TYPES = ['Session 1', 'Session 2', 'Session 3', 'Session 4'];
+// Session IDs are internal keys; SESSION_META.name is the display label.
+// Renamed from "Session 1..4" to descriptive names on 2026-06-24.
+export const SESSION_TYPES = ['full-climb', 'endurance', 'movement', 'full-body'];
+
+// Legacy → new id map, used to migrate old data on hydrate.
+export const LEGACY_SESSION_MAP = {
+  'Session 1': 'full-climb',
+  'Session 2': 'endurance',
+  'Session 3': 'movement',
+  'Session 4': 'full-body',
+};
 
 export const SESSION_META = {
-  'Session 1': {
+  'full-climb': {
+    name:  'Full Climb',
     color: 'orange',
-    icon: '◔',
-    focus: 'Full — efficiency, ARC, then pull + finger work',
-    time: '90–110 min',
+    icon:  '◔',
+    focus: 'Full protocol — efficiency, ARC, pull + finger work',
+    time:  '90–110 min',
   },
-  'Session 2': {
+  'endurance': {
+    name:  'Endurance',
     color: 'amber',
-    icon: '◑',
+    icon:  '◑',
     focus: 'Power endurance — 4x4s',
-    time: '60–75 min',
+    time:  '60–75 min',
   },
-  'Session 3': {
+  'movement': {
+    name:  'Movement',
     color: 'rose',
-    icon: '◕',
-    focus: 'Movement + power — bouldering + skill drills',
-    time: '60–75 min',
+    icon:  '◕',
+    focus: 'Bouldering + skill drills',
+    time:  '60–75 min',
   },
-  'Session 4': {
+  'full-body': {
+    name:  'Full Body',
     color: 'violet',
-    icon: '◉',
-    focus: 'Full body — antagonist, legs, core, mobility',
-    time: '45–60 min',
+    icon:  '◉',
+    focus: 'Antagonist · legs · core · mobility',
+    time:  '45–60 min',
   },
 };
 
@@ -141,7 +155,7 @@ export const PHASES = [
       "Log every attempt — flash / send / worked. This is your motivation over months.",
     ],
     sessions: {
-      'Session 1': {
+      'full-climb': {
         steps: session1Steps({
           warmupGrade: '5.7',
           effGradeFlash: '5.10a-b',
@@ -151,25 +165,25 @@ export const PHASES = [
           gripSecs: 5,
         }),
       },
-      'Session 2': {
+      'endurance': {
         steps: session2Steps({
           warmupGrade: '5.7',
           fourByFourGrade: '5.8-5.9 (achievable — you should finish all 16 climbs)',
           cooldownGrade: '5.7',
         }),
       },
-      'Session 3': {
+      'movement': {
         steps: session3Steps({
           boulderGrade: 'V2-V3',
           driveGrade: '5.7-5.8',
         }),
       },
-      'Session 4': { steps: SESSION_4_STEPS },
+      'full-body': { steps: SESSION_4_STEPS },
     },
     criteria: [
       'Flashed 5.10b top-rope in 3 consecutive sessions',
       'ARC sessions feel sustainable (no forearm burnout at 20 min)',
-      'Session 4 (full body) is happening at least 1× per week consistently',
+      'Full Body session is happening at least 1× per week consistently',
       'Movement on flash-grade routes feels controlled, not desperate',
     ],
   },
@@ -188,7 +202,7 @@ export const PHASES = [
       "Route-reading habitual — 60 sec on the ground before every climb.",
     ],
     sessions: {
-      'Session 1': {
+      'full-climb': {
         steps: [
           ...session1Steps({
             warmupGrade: '5.7-5.8',
@@ -202,20 +216,20 @@ export const PHASES = [
           { ex: 'route-reading', dose: 'Explicit ground-read before every efficiency attempt (60s min)' },
         ],
       },
-      'Session 2': {
+      'endurance': {
         steps: session2Steps({
           warmupGrade: '5.7-5.8',
           fourByFourGrade: '5.9-5.10a',
           cooldownGrade: '5.7-5.8',
         }),
       },
-      'Session 3': {
+      'movement': {
         steps: session3Steps({
           boulderGrade: 'V3-V4',
           driveGrade: '5.8-5.9',
         }),
       },
-      'Session 4': { steps: SESSION_4_STEPS },
+      'full-body': { steps: SESSION_4_STEPS },
     },
     criteria: [
       'Flashed 5.10d top-rope in 3 consecutive sessions',
@@ -239,7 +253,7 @@ export const PHASES = [
       "Hangboard repeaters ENTER (Phase 3+). Advanced tool — build slow. Skip if any elbow / finger tenderness.",
     ],
     sessions: {
-      'Session 1': {
+      'full-climb': {
         steps: session1Steps({
           warmupGrade: '5.8',
           effGradeFlash: '5.11a-b',
@@ -251,7 +265,7 @@ export const PHASES = [
           hangboard: true,
         }),
       },
-      'Session 2': {
+      'endurance': {
         steps: [
           { ex: 'joint-prep',    dose: '5 min routine' },
           { ex: 'warmup-route',  dose: '1 easy route at 5.8' },
@@ -261,7 +275,7 @@ export const PHASES = [
           { ex: 'arc-cooldown',  dose: '10 min easy on 5.7-5.8' },
         ],
       },
-      'Session 3': {
+      'movement': {
         steps: [
           { ex: 'joint-prep',      dose: '5 min routine' },
           { ex: 'warmup-boulder',  dose: '1 easy V0 boulder or short traverse' },
@@ -271,7 +285,7 @@ export const PHASES = [
           { ex: 'lead-cert-drill', dose: 'Mock lead-cert exam on 5.9 · until it passes cleanly' },
         ],
       },
-      'Session 4': { steps: SESSION_4_STEPS },
+      'full-body': { steps: SESSION_4_STEPS },
     },
     criteria: [
       'PASSED LEAD CERTIFICATION at the gym',
@@ -295,7 +309,7 @@ export const PHASES = [
       "Bouldering V4-V5 supports movement power for route cruxes.",
     ],
     sessions: {
-      'Session 1': {
+      'full-climb': {
         steps: session1Steps({
           warmupGrade: '5.8-5.9',
           effGradeFlash: '5.11b-c',
@@ -307,7 +321,7 @@ export const PHASES = [
           hangboard: true,
         }),
       },
-      'Session 2': {
+      'endurance': {
         steps: [
           { ex: 'joint-prep',    dose: '5 min routine' },
           { ex: 'warmup-route',  dose: '1 easy route at 5.8-5.9' },
@@ -317,7 +331,7 @@ export const PHASES = [
           { ex: 'arc-cooldown',  dose: '10 min easy' },
         ],
       },
-      'Session 3': {
+      'movement': {
         steps: [
           { ex: 'joint-prep',      dose: '5 min routine' },
           { ex: 'warmup-boulder',  dose: '1 easy V0 boulder' },
@@ -326,7 +340,7 @@ export const PHASES = [
           { ex: 'clip-practice',   dose: 'On lead when possible — automate clip stance under fatigue' },
         ],
       },
-      'Session 4': { steps: SESSION_4_STEPS },
+      'full-body': { steps: SESSION_4_STEPS },
     },
     criteria: [
       'Onsight 5.11c on lead',
@@ -350,7 +364,7 @@ export const PHASES = [
       "Video every project attempt — you'll spot beta refinements from watching that you never notice in the moment.",
     ],
     sessions: {
-      'Session 1': {
+      'full-climb': {
         steps: session1Steps({
           warmupGrade: '5.9',
           effGradeFlash: '5.11d-5.12a',
@@ -362,7 +376,7 @@ export const PHASES = [
           hangboard: true,
         }),
       },
-      'Session 2': {
+      'endurance': {
         steps: [
           { ex: 'joint-prep',      dose: '5 min routine' },
           { ex: 'warmup-route',    dose: '1 easy route at 5.9' },
@@ -373,7 +387,7 @@ export const PHASES = [
           { ex: 'arc-cooldown',    dose: '10 min easy' },
         ],
       },
-      'Session 3': {
+      'movement': {
         steps: [
           { ex: 'joint-prep',      dose: '5 min routine' },
           { ex: 'warmup-boulder',  dose: '1 easy V0 boulder' },
@@ -383,7 +397,7 @@ export const PHASES = [
           { ex: 'fall-practice',   dose: 'Increasing height above bolt — building outdoor whipper comfort' },
         ],
       },
-      'Session 4': { steps: SESSION_4_STEPS },
+      'full-body': { steps: SESSION_4_STEPS },
     },
     criteria: [
       'Onsight 5.11d on lead',
@@ -408,7 +422,7 @@ export const PHASES = [
       "Outdoor > indoor for this grade — real rock rewards efficient movement in a way plastic doesn't.",
     ],
     sessions: {
-      'Session 1': {
+      'full-climb': {
         steps: [
           { ex: 'joint-prep',      dose: '5 min routine' },
           { ex: 'warmup-route',    dose: '1 easy route' },
@@ -421,7 +435,7 @@ export const PHASES = [
           { ex: 'hangboard-repeaters', dose: '7s/3s × 6 × 6 sets, high intensity' },
         ],
       },
-      'Session 2': {
+      'endurance': {
         steps: [
           { ex: 'joint-prep',    dose: '5 min routine' },
           { ex: 'warmup-route',  dose: '1 easy route' },
@@ -430,7 +444,7 @@ export const PHASES = [
           { ex: 'fall-practice', dose: 'Big-air whippers — where the project demands commitment' },
         ],
       },
-      'Session 3': {
+      'movement': {
         steps: [
           { ex: 'joint-prep',      dose: '5 min routine' },
           { ex: 'warmup-boulder',  dose: '1 easy V0 boulder' },
@@ -438,7 +452,7 @@ export const PHASES = [
           { ex: 'movement-drill',  dose: 'Specific to project weakness — micro-drilling crux beta' },
         ],
       },
-      'Session 4': { steps: SESSION_4_STEPS },
+      'full-body': { steps: SESSION_4_STEPS },
     },
     criteria: [
       'Sent 5.12d — indoor or outdoor',

@@ -93,7 +93,7 @@ export default function WeekView() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <div className="font-semibold text-zinc-100">{s}</div>
+                  <div className="font-semibold text-zinc-100">{meta.name}</div>
                   <div className="text-[10px] text-zinc-500 flex-shrink-0">{meta.time}</div>
                 </div>
                 <div className="text-xs text-zinc-400 mt-0.5 leading-snug">{meta.focus}</div>

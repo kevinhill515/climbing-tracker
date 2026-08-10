@@ -60,6 +60,41 @@ const DEFAULT_DATA = () => ({
   photos: [
     // { id, date, url, caption }
   ],
+
+  // Milestones — big picture progression outside of raw grade numbers.
+  // Some fields auto-populate (phaseCompletions from advancePhase);
+  // others are self-affirmed via the Milestones tab.
+  milestones: {
+    // Date user completed each phase — set when advancePhase() fires.
+    // Format: { 1: '2026-08-01', 2: '2026-10-01', ... }
+    phaseCompletions: {},
+    // Lead climb certification (unlocks at Phase 3).
+    lead: {
+      certifiedDate: null,
+      subitems: {
+        fallsComfortable: false,   // controlled falls at 2-3 bolt-height
+        clipMechanicSolid: false,  // fold-back grip, from stance
+        gymCertPassed: false,      // gym's practical exam
+        gymCardIssued: false,      // physical card / badge
+      },
+    },
+    // Outdoor prep (unlocks at Phase 5).
+    outdoor: {
+      firstOutdoorClimb:  null,   // date of first outdoor climb
+      firstOutdoorLead:   null,   // date of first outdoor lead
+      anchorBuildingDone: false,  // drilled ground-level anchor setup
+      cleaningDone:       false,  // drilled cleaning at anchors
+      firstMultiPitch:    null,
+    },
+    // Technique drill mastery (self-affirmed after weeks of drilling).
+    drills: {
+      silentFeet:   false,
+      dropKnee:     false,
+      flag:         false,
+      handFootMatch:false,
+      outsideEdge:  false,
+    },
+  },
 });
 
 function reducer(state, action) {
@@ -87,7 +122,53 @@ function ensureShape(data) {
     boulder: { ...DEFAULT_DATA().grades.boulder, ...(data?.grades?.boulder || {}) },
     toprope: { ...DEFAULT_DATA().grades.toprope, ...(data?.grades?.toprope || {}) },
   };
-  return d;
+  d.milestones = { ...DEFAULT_DATA().milestones, ...(data?.milestones || {}) };
+  return migrateSessionKeys(d);
+}
+
+// One-shot data migration for the "Session 1..4" → "full-climb/endurance/..."
+// rename. Rewrites keys inside data.weeks and sessionType on each grade
+// attempt. Idempotent — running on already-migrated data is a no-op.
+function migrateSessionKeys(d) {
+  const map = { 'Session 1': 'full-climb', 'Session 2': 'endurance', 'Session 3': 'movement', 'Session 4': 'full-body' };
+  const out = { ...d };
+  if (d.weeks) {
+    const migratedWeeks = {};
+    for (const [wid, wk] of Object.entries(d.weeks)) {
+      const newWk = {};
+      for (const [k, v] of Object.entries(wk)) {
+        newWk[map[k] || k] = v;
+      }
+      migratedWeeks[wid] = newWk;
+    }
+    out.weeks = migratedWeeks;
+  }
+  if (d.grades) {
+    const remapAttempts = (attempts) =>
+      (attempts || []).map((a) =>
+        a.sessionType && map[a.sessionType]
+          ? { ...a, sessionType: map[a.sessionType] }
+          : a
+      );
+    out.grades = {
+      ...d.grades,
+      boulder: { ...d.grades.boulder, attempts: remapAttempts(d.grades.boulder?.attempts) },
+      toprope: { ...d.grades.toprope, attempts: remapAttempts(d.grades.toprope?.attempts) },
+    };
+  }
+  if (d.logs) {
+    out.logs = d.logs.map((l) =>
+      l.sessionType && map[l.sessionType]
+        ? { ...l, sessionType: map[l.sessionType] }
+        : l
+    );
+  }
+  if (d.sessions) {
+    out.sessions = d.sessions.map((s) =>
+      s.type && map[s.type] ? { ...s, type: map[s.type] } : s
+    );
+  }
+  return out;
 }
 
 export function StoreProvider({ children }) {
@@ -262,12 +343,80 @@ export function StoreProvider({ children }) {
     }));
   }, [patch]);
 
-  // Phase advancement
+  // Phase advancement — also stamps a completion date onto the phase we
+  // just finished, so the Milestones tab can show a timeline.
   const advancePhase = useCallback(() => {
+    patch((d) => {
+      const finished = d.currentPhase;
+      const next = Math.min(6, finished + 1);
+      const phaseCompletions = { ...(d.milestones?.phaseCompletions || {}), [finished]: TODAY() };
+      return {
+        ...d,
+        currentPhase: next,
+        phaseOverride: null,
+        milestones: { ...d.milestones, phaseCompletions },
+      };
+    });
+  }, [patch]);
+
+  // ---------- milestones actions ----------
+  const toggleLeadSubitem = useCallback((key) => {
+    patch((d) => {
+      const sub = { ...(d.milestones?.lead?.subitems || {}) };
+      sub[key] = !sub[key];
+      const all = ['fallsComfortable','clipMechanicSolid','gymCertPassed','gymCardIssued']
+        .every((k) => sub[k]);
+      return {
+        ...d,
+        milestones: {
+          ...d.milestones,
+          lead: {
+            ...(d.milestones?.lead || {}),
+            subitems: sub,
+            // Auto-set certifiedDate when all four sub-items check
+            certifiedDate: all ? (d.milestones?.lead?.certifiedDate || TODAY()) : null,
+          },
+        },
+      };
+    });
+  }, [patch]);
+
+  const toggleOutdoorFlag = useCallback((key) => {
     patch((d) => ({
       ...d,
-      currentPhase: Math.min(6, d.currentPhase + 1),
-      phaseOverride: null,
+      milestones: {
+        ...d.milestones,
+        outdoor: {
+          ...(d.milestones?.outdoor || {}),
+          [key]: !d.milestones?.outdoor?.[key],
+        },
+      },
+    }));
+  }, [patch]);
+
+  const setOutdoorDate = useCallback((key, dateStr) => {
+    patch((d) => ({
+      ...d,
+      milestones: {
+        ...d.milestones,
+        outdoor: {
+          ...(d.milestones?.outdoor || {}),
+          [key]: dateStr || null,
+        },
+      },
+    }));
+  }, [patch]);
+
+  const toggleDrillMastery = useCallback((key) => {
+    patch((d) => ({
+      ...d,
+      milestones: {
+        ...d.milestones,
+        drills: {
+          ...(d.milestones?.drills || {}),
+          [key]: !d.milestones?.drills?.[key],
+        },
+      },
     }));
   }, [patch]);
 
@@ -307,6 +456,10 @@ export function StoreProvider({ children }) {
       advancePhase,
       setPhaseOverride,
       setStartDate,
+      toggleLeadSubitem,
+      toggleOutdoorFlag,
+      setOutdoorDate,
+      toggleDrillMastery,
       pull,
       forceRestoreFromCloud,
     },
@@ -315,7 +468,9 @@ export function StoreProvider({ children }) {
     toggleSession, addLog, removeLog, addSession, removeSession,
     addHealthCheck, removeHealthCheck, addTechniqueNote,
     setGradeLevel, logGradeAttempt, removeGradeAttempt,
-    advancePhase, setPhaseOverride, setStartDate, pull, forceRestoreFromCloud,
+    advancePhase, setPhaseOverride, setStartDate,
+    toggleLeadSubitem, toggleOutdoorFlag, setOutdoorDate, toggleDrillMastery,
+    pull, forceRestoreFromCloud,
   ]);
 
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>;

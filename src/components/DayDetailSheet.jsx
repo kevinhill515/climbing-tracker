@@ -2,7 +2,7 @@ import Sheet from './Sheet.jsx';
 import { useStore } from '../store.jsx';
 import { getExercise } from '../data/exercises.js';
 import { parseDate, weekId } from '../utils/dates.js';
-import { SESSION_TYPES } from '../data/program.js';
+import { SESSION_TYPES, SESSION_META } from '../data/program.js';
 
 // Read-only view of everything logged on a single date. Tapping a
 // heatmap cell opens this sheet.
@@ -100,7 +100,7 @@ function SessionGroup({ type, logs, isComplete, onToggle }) {
   return (
     <div>
       <div className="flex items-baseline justify-between mb-1.5">
-        <div className="text-[11px] uppercase tracking-wide text-zinc-400">{type}</div>
+        <div className="text-[11px] uppercase tracking-wide text-zinc-400">{SESSION_META[type]?.name || type}</div>
         <div className="text-[10px] text-zinc-600">
           {logs.length} log{logs.length === 1 ? '' : 's'} · {exerciseCount} exercise{exerciseCount === 1 ? '' : 's'}
         </div>
@@ -116,8 +116,8 @@ function SessionGroup({ type, logs, isComplete, onToggle }) {
           }`}
         >
           {isComplete
-            ? `✓ ${type} marked complete for this week · tap to undo`
-            : `Mark this week's ${type} complete →`}
+            ? `✓ ${SESSION_META[type]?.name || type} marked complete for this week · tap to undo`
+            : `Mark this week's ${SESSION_META[type]?.name || type} complete →`}
         </button>
       )}
 

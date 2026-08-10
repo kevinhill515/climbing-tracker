@@ -1,6 +1,6 @@
 import Sheet from './Sheet.jsx';
 import { useStore } from '../store.jsx';
-import { SESSION_TYPES } from '../data/program.js';
+import { SESSION_TYPES, SESSION_META } from '../data/program.js';
 import { useState } from 'react';
 import { today } from '../utils/dates.js';
 
@@ -61,7 +61,7 @@ export default function ExtraSessionSheet({ open, onClose }) {
                     : 'bg-zinc-800 border-zinc-700 text-zinc-300'
                 }`}
               >
-                {t === 'Freeform' ? 'Freeform / just climbed' : t}
+                {t === 'Freeform' ? 'Freeform / just climbed' : (SESSION_META[t]?.name || t)}
               </button>
             ))}
           </div>

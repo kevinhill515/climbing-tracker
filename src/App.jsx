@@ -3,8 +3,8 @@ import { StoreProvider, useStore } from './store.jsx';
 import BottomNav from './components/BottomNav.jsx';
 import WeekView from './components/WeekView.jsx';
 import GradesView from './components/GradesView.jsx';
-import HealthView from './components/HealthView.jsx';
-import HistoryView from './components/HistoryView.jsx';
+import MilestonesView from './components/MilestonesView.jsx';
+import LogView from './components/LogView.jsx';
 import SettingsSheet from './components/SettingsSheet.jsx';
 
 export default function App() {
@@ -28,10 +28,10 @@ function Shell() {
     <div className="min-h-full flex flex-col bg-zinc-950">
       <TopBar onSettings={() => setSettings(true)} />
       <main className="flex-1">
-        {tab === 'week'    && <WeekView />}
-        {tab === 'grades'  && <GradesView />}
-        {tab === 'health'  && <HealthView />}
-        {tab === 'history' && <HistoryView />}
+        {tab === 'week'       && <WeekView />}
+        {tab === 'grades'     && <GradesView />}
+        {tab === 'milestones' && <MilestonesView />}
+        {tab === 'log'        && <LogView />}
       </main>
       <BottomNav tab={tab} setTab={setTab} />
       <SettingsSheet open={settings} onClose={() => setSettings(false)} />

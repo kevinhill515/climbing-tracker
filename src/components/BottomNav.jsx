@@ -1,8 +1,8 @@
 const TABS = [
-  { id: 'week',     label: 'Week',    icon: '◧' },
-  { id: 'grades',   label: 'Grades',  icon: '▲' },
-  { id: 'health',   label: 'Health',  icon: '♡' },
-  { id: 'history',  label: 'History', icon: '⏱' },
+  { id: 'week',       label: 'Week',       icon: '◧' },
+  { id: 'grades',     label: 'Grades',     icon: '▲' },
+  { id: 'milestones', label: 'Milestones', icon: '✦' },
+  { id: 'log',        label: 'Log',        icon: '⏱' },
 ];
 
 export default function BottomNav({ tab, setTab }) {
