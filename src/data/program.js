@@ -47,37 +47,37 @@ export const SESSION_META = {
 
 // Session 4 is the full-body / antagonist / injury-prevention day. Same
 // structure across all phases — user progresses load (weight, reps, or
-// hold time) as they get stronger. 1-2× per week is the sweet spot.
+// Steps grouped by muscle group via `group` field. SessionSheet reads
+// this to render sub-section headers WITHIN the Off-the-wall block.
 const SESSION_4_STEPS = [
-  // ---- prep ----
-  { ex: 'hip-mobility',      dose: '5-7 min hip stretches — start warm' },
-  { ex: 'dynamic-warmup',    dose: '5 min — jump rope, arm circles, leg swings, hip openers, cat-cow' },
-  // ---- push / straight-arm strength (climbing-specific antagonist) ----
-  { ex: 'push-up',                 dose: '3 × 15' },
-  { ex: 'pseudo-planche-pushup',   dose: '3 × 8-10 — hands rotated back, lean forward as you lower' },
-  { ex: 'pike-pushup',             dose: '3 × 8-12 — bodyweight overhead press' },
-  { ex: 'wall-hspu',               dose: '3 × 3-6 (band assist if needed) — full HSPU is a long-term goal' },
-  { ex: 'ring-dip',                dose: '3 × 6-10 on rings (or dips if no rings)' },
-  { ex: 'handstand-attempts',      dose: '10 kick-up attempts — control > time' },
-  // ---- pull / straight-arm strength ----
-  { ex: 'adv-tuck-planche',        dose: '5 × 8-15s holds — straight arms, scapulae protracted' },
-  { ex: 'tuck-front-lever',        dose: '5 × 5-10s holds — pull with lats, not biceps' },
-  { ex: 'ice-cream-makers',        dose: '3 × 5 — top of pull-up → controlled lean back to inverted hang → up' },
-  // ---- shoulder + elbow health ----
-  { ex: 'ext-rotation',            dose: '3 × 15 each side · 2-5 lb' },
-  { ex: 'prone-ytw',               dose: '3 sets of 8 Y + 8 T + 8 W' },
-  { ex: 'wrist-ext',               dose: '3 × 15 · 2-5 lb' },
-  { ex: 'reverse-wrist-curl',      dose: '3 × 15 · 2-5 lb' },
-  // ---- legs ----
-  { ex: 'squat',                   dose: '3 × 20 bodyweight (add DBs when trivial)' },
-  { ex: 'bulgarian-split-squat',   dose: '3 × 10 each leg' },
-  { ex: 'calf-raise',              dose: '3 × 15 on a step edge' },
-  // ---- core ----
-  { ex: 'hollow-body-hold',        dose: '3 × 30-45s' },
-  { ex: 'plank',                   dose: '3 × 45-60s' },
-  { ex: 'dead-bug',                dose: '3 × 10 each side' },
-  // ---- optional cardio ----
-  { ex: 'zone2-cardio',            dose: '15-20 min · optional but great for outdoor approach prep' },
+  // Prep — handled by the top-level Prep group
+  { group: 'prep', ex: 'hip-mobility',   dose: '5-7 min hip stretches — start warm' },
+  { group: 'prep', ex: 'dynamic-warmup', dose: '5 min — jump rope, arm circles, leg swings, hip openers, cat-cow' },
+  // Push
+  { group: 'push', ex: 'push-up',               dose: '3 × 15' },
+  { group: 'push', ex: 'pseudo-planche-pushup', dose: '3 × 8-10 — hands rotated back, lean forward as you lower' },
+  { group: 'push', ex: 'pike-pushup',           dose: '3 × 8-12 — bodyweight overhead press' },
+  { group: 'push', ex: 'wall-hspu',             dose: '3 × 3-6 (band assist if needed)' },
+  { group: 'push', ex: 'ring-dip',              dose: '3 × 6-10 on rings (or dips)' },
+  { group: 'push', ex: 'handstand-attempts',    dose: '10 kick-up attempts — control > time' },
+  { group: 'push', ex: 'adv-tuck-planche',      dose: '5 × 8-15s holds — straight-arm push/support' },
+  // Pull (climbing-specific + shoulder health)
+  { group: 'pull', ex: 'tuck-front-lever',      dose: '5 × 5-10s holds — pull with lats, not biceps' },
+  { group: 'pull', ex: 'ice-cream-makers',      dose: '3 × 5 — top of pull-up → slow lean back to inverted hang → up' },
+  { group: 'pull', ex: 'ext-rotation',          dose: '3 × 15 each side · 2-5 lb' },
+  { group: 'pull', ex: 'prone-ytw',             dose: '3 sets of 8 Y + 8 T + 8 W' },
+  { group: 'pull', ex: 'wrist-ext',             dose: '3 × 15 · 2-5 lb (climber elbow protection)' },
+  { group: 'pull', ex: 'reverse-wrist-curl',    dose: '3 × 15 · 2-5 lb' },
+  // Legs
+  { group: 'legs', ex: 'squat',                 dose: '3 × 20 bodyweight (add DBs when trivial)' },
+  { group: 'legs', ex: 'bulgarian-split-squat', dose: '3 × 10 each leg' },
+  { group: 'legs', ex: 'calf-raise',            dose: '3 × 15 on a step edge' },
+  // Core
+  { group: 'core', ex: 'hollow-body-hold',      dose: '3 × 30-45s' },
+  { group: 'core', ex: 'plank',                 dose: '3 × 45-60s' },
+  { group: 'core', ex: 'dead-bug',              dose: '3 × 10 each side' },
+  // Optional cardio (approach prep)
+  { group: 'cardio', ex: 'zone2-cardio',        dose: '15-20 min · optional but great for outdoor approach prep' },
 ];
 
 // Helper: standard Session 1 structure per phase's grade progression.
@@ -109,25 +109,38 @@ function session1Steps({ warmupGrade, effGradeFlash, arcGrade, pullSets, pullVar
   return steps;
 }
 
-// Session 2 — Endurance / Power Endurance. Bouldering-based 4x4s here —
-// gym top-rope doesn't have enough same-grade routes with fast belay
-// swaps. 4x4 = 4 boulders × 4 rounds = 16 problems total.
-function session2Steps({ fourByFourBoulderGrade }) {
-  return [
-    { ex: 'hip-mobility',   dose: '5-7 min hip stretches — start warm' },
-    { ex: 'joint-prep',     dose: '5 min wrist + shoulder routine' },
-    { ex: 'warmup-boulder', dose: '1 easy V0 boulder to warm up' },
-    { ex: 'four-by-four',   dose: `4 boulders at ${fourByFourBoulderGrade}, back-to-back · 4 rounds, 3-5 min rest between rounds` },
-  ];
-}
-
-// Session 3 — Movement + Power. Bouldering block + ONE deep drill.
-function session3Steps({ boulderGrade, driveGrade, includeLead = false }) {
+// Session 2 — Endurance. TR-primary since top rope IS endurance climbing
+// (longer routes = more sustained pulling). Light bouldering cool-down
+// so it doesn't overtrain the aerobic system.
+function session2Steps({ warmupGrade, arcGrade, repeatGrade }) {
   const steps = [
-    // Prep block
     { ex: 'hip-mobility',    dose: '5-7 min hip stretches — start warm' },
     { ex: 'joint-prep',      dose: '5 min wrist + shoulder routine' },
-    // Climbing block
+    { ex: 'warmup-route',    dose: `1 easy route at ${warmupGrade}` },
+  ];
+  if (repeatGrade) {
+    steps.push({
+      ex: 'route-repeats',
+      dose: `2 routes at ${repeatGrade}, 2 laps each · 3-5 min rest between laps`,
+    });
+  }
+  steps.push({
+    ex: 'arc-training',
+    dose: `3-4 laps on a ${arcGrade}, minimal rest between (belay swap = your rest)`,
+  });
+  steps.push({
+    ex: 'boulder-cooldown',
+    dose: '2-3 easy boulders (V0-V1) — flow only, complementary movement',
+  });
+  return steps;
+}
+
+// Session 3 — Movement. Bouldering-primary movement work with a light
+// top-rope cool-down to end the day fresh in a different body position.
+function session3Steps({ boulderGrade, driveGrade, includeLead = false }) {
+  const steps = [
+    { ex: 'hip-mobility',    dose: '5-7 min hip stretches — start warm' },
+    { ex: 'joint-prep',      dose: '5 min wrist + shoulder routine' },
     { ex: 'warmup-boulder',  dose: '1 easy V0 boulder or short traverse' },
     { ex: 'boulder-block',   dose: `30-45 min at ${boulderGrade}, quality over volume, 3-5 min rest` },
     { ex: 'movement-drill',  dose: `Pick ONE drill and go deep · 2-3 routes at ${driveGrade}` },
@@ -136,6 +149,10 @@ function session3Steps({ boulderGrade, driveGrade, includeLead = false }) {
   if (includeLead) {
     steps.push({ ex: 'clip-practice', dose: 'On top rope, practice clip mechanics at each bolt · 1 route' });
   }
+  steps.push({
+    ex: 'tr-cooldown',
+    dose: '1-2 easy routes at 5.7 — cool down after boulder work',
+  });
   return steps;
 }
 
@@ -165,7 +182,11 @@ export const PHASES = [
         }),
       },
       'endurance': {
-        steps: session2Steps({ fourByFourBoulderGrade: 'V0-V1' }),
+        steps: session2Steps({
+          warmupGrade: '5.7',
+          arcGrade: '5.7',
+          // No route repeats in Phase 1 — build the endurance base first.
+        }),
       },
       'movement': {
         steps: session3Steps({
@@ -211,7 +232,11 @@ export const PHASES = [
         ],
       },
       'endurance': {
-        steps: session2Steps({ fourByFourBoulderGrade: 'V1-V2' }),
+        steps: session2Steps({
+          warmupGrade: '5.7-5.8',
+          repeatGrade: '5.9-5.10a',
+          arcGrade: '5.7-5.8',
+        }),
       },
       'movement': {
         steps: session3Steps({
@@ -256,22 +281,26 @@ export const PHASES = [
       },
       'endurance': {
         steps: [
-          { ex: 'joint-prep',    dose: '5 min routine' },
-          { ex: 'warmup-route',  dose: '1 easy route at 5.8' },
-          { ex: 'clip-practice', dose: 'On TR at each bolt, practice clip mechanics · 1 route' },
-          { ex: 'mock-lead',     dose: 'On TR trailing a lead rope, mock-clip each bolt · 1-2 routes' },
-          { ex: 'four-by-four',  dose: '4 boulders at V1-V2 · 4 rounds, 3-5 min rest between' },
-          { ex: 'arc-cooldown',  dose: '10 min easy on 5.7-5.8' },
+          { ex: 'hip-mobility',    dose: '5-7 min hip stretches — start warm' },
+          { ex: 'joint-prep',      dose: '5 min wrist + shoulder routine' },
+          { ex: 'warmup-route',    dose: '1 easy route at 5.8' },
+          { ex: 'route-repeats',   dose: '2 routes at 5.10a-b, 2 laps each · 3-5 min rest between laps' },
+          { ex: 'arc-training',    dose: '3-4 laps on 5.8, minimal rest between' },
+          { ex: 'clip-practice',   dose: 'On TR at each bolt, practice clip mechanics · 1 route' },
+          { ex: 'mock-lead',       dose: 'On TR trailing a lead rope, mock-clip each bolt · 1-2 routes' },
+          { ex: 'boulder-cooldown',dose: '2-3 easy boulders (V0-V1) — complementary movement' },
         ],
       },
       'movement': {
         steps: [
-          { ex: 'joint-prep',      dose: '5 min routine' },
+          { ex: 'hip-mobility',    dose: '5-7 min hip stretches — start warm' },
+          { ex: 'joint-prep',      dose: '5 min wrist + shoulder routine' },
           { ex: 'warmup-boulder',  dose: '1 easy V0 boulder or short traverse' },
           { ex: 'boulder-block',   dose: '30 min at V4-V5, quality over volume' },
           { ex: 'movement-drill',  dose: 'Pick ONE drill and go deep · 2-3 routes at 5.9-5.10a' },
           { ex: 'fall-practice',   dose: '5-10 controlled falls on lead, well below redpoint · with experienced belayer' },
           { ex: 'lead-cert-drill', dose: 'Mock lead-cert exam on 5.9 · until it passes cleanly' },
+          { ex: 'tr-cooldown',     dose: '1-2 easy routes at 5.7 — cool down after boulder work' },
         ],
       },
       'full-body': { steps: SESSION_4_STEPS },
@@ -311,21 +340,24 @@ export const PHASES = [
       },
       'endurance': {
         steps: [
-          { ex: 'joint-prep',    dose: '5 min routine' },
-          { ex: 'warmup-route',  dose: '1 easy route at 5.8-5.9' },
-          { ex: 'four-by-four',  dose: '4 boulders at V2-V3 · 4 rounds, 3-5 min rest between' },
-          { ex: 'route-repeats', dose: '2 routes at 5.11a-b · 3 laps each · project moves on last lap' },
-          { ex: 'fall-practice', dose: '3-5 falls above bolt 4, working comfort' },
-          { ex: 'arc-cooldown',  dose: '10 min easy' },
+          { ex: 'hip-mobility',    dose: '5-7 min hip stretches — start warm' },
+          { ex: 'joint-prep',      dose: '5 min wrist + shoulder routine' },
+          { ex: 'warmup-route',    dose: '1 easy route at 5.8-5.9' },
+          { ex: 'route-repeats',   dose: '2 routes at 5.11a-b · 3 laps each · project moves on last lap' },
+          { ex: 'arc-training',    dose: '3-4 laps on 5.8-5.9, minimal rest between' },
+          { ex: 'fall-practice',   dose: '3-5 falls above bolt 4, working comfort' },
+          { ex: 'boulder-cooldown',dose: '2-3 easy boulders (V0-V2) — complementary movement' },
         ],
       },
       'movement': {
         steps: [
-          { ex: 'joint-prep',      dose: '5 min routine' },
+          { ex: 'hip-mobility',    dose: '5-7 min hip stretches — start warm' },
+          { ex: 'joint-prep',      dose: '5 min wrist + shoulder routine' },
           { ex: 'warmup-boulder',  dose: '1 easy V0 boulder' },
           { ex: 'boulder-block',   dose: '30-45 min at V4-V5' },
           { ex: 'movement-drill',  dose: 'Pick ONE drill · drop knees + flags on 3 routes at 5.10' },
           { ex: 'clip-practice',   dose: 'On lead when possible — automate clip stance under fatigue' },
+          { ex: 'tr-cooldown',     dose: '1-2 easy routes at 5.7-5.8 — cool down' },
         ],
       },
       'full-body': { steps: SESSION_4_STEPS },
@@ -365,23 +397,26 @@ export const PHASES = [
       },
       'endurance': {
         steps: [
-          { ex: 'joint-prep',      dose: '5 min routine' },
+          { ex: 'hip-mobility',    dose: '5-7 min hip stretches — start warm' },
+          { ex: 'joint-prep',      dose: '5 min wrist + shoulder routine' },
           { ex: 'warmup-route',    dose: '1 easy route at 5.9' },
-          { ex: 'four-by-four',    dose: '4 boulders at V3-V4 · 4 rounds, 3-5 min rest between' },
           { ex: 'route-repeats',   dose: '2 routes at 5.11c-d · 3 laps each' },
+          { ex: 'arc-training',    dose: '3-4 laps on 5.9, minimal rest between' },
           { ex: 'anchor-building', dose: '10 min ground practice — SRENE anchor, 2 setups' },
           { ex: 'cleaning-anchor', dose: 'Practice threading + lowering on ground setup' },
-          { ex: 'arc-cooldown',    dose: '10 min easy' },
+          { ex: 'boulder-cooldown',dose: '2-3 easy boulders (V0-V2) — complementary movement' },
         ],
       },
       'movement': {
         steps: [
-          { ex: 'joint-prep',      dose: '5 min routine' },
+          { ex: 'hip-mobility',    dose: '5-7 min hip stretches — start warm' },
+          { ex: 'joint-prep',      dose: '5 min wrist + shoulder routine' },
           { ex: 'warmup-boulder',  dose: '1 easy V0 boulder' },
           { ex: 'boulder-block',   dose: '30 min at V5-V6, focus on crux-move patterns' },
           { ex: 'movement-drill',  dose: 'Pick ONE drill · drill deep on 3 routes' },
           { ex: 'rope-management', dose: 'Coiling, flaking, back-clipping prevention · 10 min' },
           { ex: 'fall-practice',   dose: 'Increasing height above bolt — building outdoor whipper comfort' },
+          { ex: 'tr-cooldown',     dose: '1-2 easy routes at 5.8 — cool down' },
         ],
       },
       'full-body': { steps: SESSION_4_STEPS },
@@ -424,19 +459,23 @@ export const PHASES = [
       },
       'endurance': {
         steps: [
-          { ex: 'joint-prep',    dose: '5 min routine' },
-          { ex: 'warmup-route',  dose: '1 easy route' },
-          { ex: 'four-by-four',  dose: '4 boulders at V4-V5 · 4 rounds, 3-5 min rest between' },
-          { ex: 'route-repeats', dose: 'Project laps — climb the project in sections, work each crux' },
-          { ex: 'fall-practice', dose: 'Big-air whippers — where the project demands commitment' },
+          { ex: 'hip-mobility',    dose: '5-7 min hip stretches — start warm' },
+          { ex: 'joint-prep',      dose: '5 min wrist + shoulder routine' },
+          { ex: 'warmup-route',    dose: '1 easy route' },
+          { ex: 'route-repeats',   dose: 'Project laps — climb the project in sections, work each crux' },
+          { ex: 'arc-training',    dose: '3-4 laps on 5.10, minimal rest between' },
+          { ex: 'fall-practice',   dose: 'Big-air whippers — where the project demands commitment' },
+          { ex: 'boulder-cooldown',dose: '2-3 easy boulders — light complementary movement' },
         ],
       },
       'movement': {
         steps: [
-          { ex: 'joint-prep',      dose: '5 min routine' },
+          { ex: 'hip-mobility',    dose: '5-7 min hip stretches — start warm' },
+          { ex: 'joint-prep',      dose: '5 min wrist + shoulder routine' },
           { ex: 'warmup-boulder',  dose: '1 easy V0 boulder' },
           { ex: 'boulder-block',   dose: '30 min at V6-V7, matching crux difficulty' },
           { ex: 'movement-drill',  dose: 'Specific to project weakness — micro-drilling crux beta' },
+          { ex: 'tr-cooldown',     dose: '1-2 easy routes — cool down' },
         ],
       },
       'full-body': { steps: SESSION_4_STEPS },

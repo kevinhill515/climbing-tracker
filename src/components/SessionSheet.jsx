@@ -88,22 +88,29 @@ export default function SessionSheet({ open, onClose, sessionType, phase }) {
             <div className="text-[11px] text-zinc-500 mt-0.5">{meta.time}</div>
           </div>
 
-          {/* Steps grouped by kind: Prep / Top rope / Boulder / Off the wall */}
+          {/* Steps grouped by top-level kind: Prep / Top rope / Boulder / Off */}
           {(() => {
             const buckets = { prep: [], toprope: [], boulder: [], off: [] };
             session.steps.forEach((step, i) => {
               const ex = getExercise(step.ex);
-              const kind = ex.checklist ? 'prep'
-                        : ex.style === 'toprope' ? 'toprope'
-                        : ex.style === 'boulder' ? 'boulder'
-                        : 'off';
+              // If a step declares an explicit `group` (e.g. Session 4's
+              // 'push' / 'pull' / 'legs' / 'core'), respect that first —
+              // 'prep' items land in prep, everything else in off (with
+              // the sub-group rendered below).
+              const kind =
+                step.group === 'prep'                       ? 'prep'
+              : step.group                                  ? 'off'
+              : ex.checklist                                ? 'prep'
+              : ex.style === 'toprope'                      ? 'toprope'
+              : ex.style === 'boulder'                      ? 'boulder'
+                                                            : 'off';
               buckets[kind].push({ step, ex, i });
             });
             const groups = [
-              { key: 'prep',    label: 'Prep',        color: 'violet',   items: buckets.prep },
-              { key: 'toprope', label: 'Top rope',    color: 'sky',      items: buckets.toprope },
-              { key: 'boulder', label: 'Boulder',     color: 'fuchsia',  items: buckets.boulder },
-              { key: 'off',     label: 'Off the wall',color: 'zinc',     items: buckets.off  },
+              { key: 'prep',    label: 'Prep',        color: 'violet',  items: buckets.prep },
+              { key: 'toprope', label: 'Top rope',    color: 'sky',     items: buckets.toprope },
+              { key: 'boulder', label: 'Boulder',     color: 'fuchsia', items: buckets.boulder },
+              { key: 'off',     label: 'Off the wall',color: 'zinc',    items: buckets.off  },
             ].filter((g) => g.items.length > 0);
 
             const dotClass = (c) =>
@@ -122,6 +129,88 @@ export default function SessionSheet({ open, onClose, sessionType, phase }) {
               kind === 'prep'    ? 'bg-violet-500/25 text-violet-200' :
                                    'bg-zinc-700 text-zinc-300';
 
+            // Render a single item row (used both in top-level groups
+            // and inside Off-the-wall sub-groups).
+            const renderRow = ({ step, ex, i }, kind) => {
+              const count = todayCounts[step.ex] || 0;
+              return (
+                <button
+                  key={i}
+                  onClick={() => {
+                    if (ex.checklist) setPrepOpen({ id: step.ex });
+                    else if (ex.style === 'toprope' || ex.style === 'boulder') setClimbOpen({ id: step.ex, prescription: step.dose });
+                    else if (ex.checkOnly) setStrengthOpen({ id: step.ex });
+                    else setExerciseOpen({ id: step.ex, prescription: step.dose });
+                  }}
+                  className={`w-full text-left bg-zinc-800/50 hover:bg-zinc-800 border rounded-xl p-3 transition active:scale-[0.99] ${count > 0 ? 'border-orange-500/40' : 'border-zinc-800'}`}
+                >
+                  <div className="flex items-start gap-3">
+                    <span className={`mt-0.5 inline-flex w-6 h-6 rounded-full ${badgeClass(kind)} text-[11px] items-center justify-center flex-shrink-0 font-bold`}>
+                      {i + 1}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-zinc-100">{ex.name}</div>
+                      <div className="text-xs text-zinc-400 mt-0.5">{step.dose}</div>
+                    </div>
+                    {count > 0 ? (
+                      <span className="flex items-center gap-1 text-xs text-orange-300 bg-orange-500/15 border border-orange-500/30 rounded-full px-2 py-0.5 flex-shrink-0">
+                        <span className="text-orange-400">✓</span>
+                        <span className="tabular-nums">{count}×</span>
+                      </span>
+                    ) : (
+                      <span className="text-zinc-500">›</span>
+                    )}
+                  </div>
+                </button>
+              );
+            };
+
+            // Sub-group definitions for the Off-the-wall block (Session 4).
+            // Steps carry `step.group` = 'push' | 'pull' | 'legs' | 'core' | 'cardio'.
+            const SUB_GROUPS = [
+              { key: 'push',   label: 'Push muscles' },
+              { key: 'pull',   label: 'Pull muscles' },
+              { key: 'legs',   label: 'Legs' },
+              { key: 'core',   label: 'Core' },
+              { key: 'cardio', label: 'Cardio' },
+            ];
+
+            const renderOffWithSubgroups = (items) => {
+              // Bucket by step.group; anything without a group falls into "other"
+              const subBuckets = { push: [], pull: [], legs: [], core: [], cardio: [], other: [] };
+              items.forEach((it) => {
+                const g = it.step.group;
+                if (g && subBuckets[g]) subBuckets[g].push(it);
+                else subBuckets.other.push(it);
+              });
+              const hasSubgroups = SUB_GROUPS.some((sg) => subBuckets[sg.key].length > 0);
+              if (!hasSubgroups) {
+                // No sub-group tags — render as a flat list like other groups
+                return items.map((it) => renderRow(it, 'off'));
+              }
+              return (
+                <>
+                  {SUB_GROUPS.map((sg) => {
+                    const subItems = subBuckets[sg.key];
+                    if (subItems.length === 0) return null;
+                    return (
+                      <div key={sg.key} className="space-y-2">
+                        <div className="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold pt-1">
+                          {sg.label}
+                        </div>
+                        {subItems.map((it) => renderRow(it, 'off'))}
+                      </div>
+                    );
+                  })}
+                  {subBuckets.other.length > 0 && (
+                    <div className="space-y-2">
+                      {subBuckets.other.map((it) => renderRow(it, 'off'))}
+                    </div>
+                  )}
+                </>
+              );
+            };
+
             return (
               <div className="space-y-4">
                 {groups.map((group) => (
@@ -133,39 +222,9 @@ export default function SessionSheet({ open, onClose, sessionType, phase }) {
                       </div>
                       <div className="text-[10px] text-zinc-600">· {group.items.length}</div>
                     </div>
-                    {group.items.map(({ step, ex, i }) => {
-                      const count = todayCounts[step.ex] || 0;
-                      return (
-                        <button
-                          key={i}
-                          onClick={() => {
-                            if (ex.checklist) setPrepOpen({ id: step.ex });
-                            else if (ex.style === 'toprope' || ex.style === 'boulder') setClimbOpen({ id: step.ex, prescription: step.dose });
-                            else if (ex.checkOnly) setStrengthOpen({ id: step.ex });
-                            else setExerciseOpen({ id: step.ex, prescription: step.dose });
-                          }}
-                          className={`w-full text-left bg-zinc-800/50 hover:bg-zinc-800 border rounded-xl p-3 transition active:scale-[0.99] ${count > 0 ? 'border-orange-500/40' : 'border-zinc-800'}`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <span className={`mt-0.5 inline-flex w-6 h-6 rounded-full ${badgeClass(group.key)} text-[11px] items-center justify-center flex-shrink-0 font-bold`}>
-                              {i + 1}
-                            </span>
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-zinc-100">{ex.name}</div>
-                              <div className="text-xs text-zinc-400 mt-0.5">{step.dose}</div>
-                            </div>
-                            {count > 0 ? (
-                              <span className="flex items-center gap-1 text-xs text-orange-300 bg-orange-500/15 border border-orange-500/30 rounded-full px-2 py-0.5 flex-shrink-0">
-                                <span className="text-orange-400">✓</span>
-                                <span className="tabular-nums">{count}×</span>
-                              </span>
-                            ) : (
-                              <span className="text-zinc-500">›</span>
-                            )}
-                          </div>
-                        </button>
-                      );
-                    })}
+                    {group.key === 'off'
+                      ? renderOffWithSubgroups(group.items)
+                      : group.items.map((it) => renderRow(it, group.key))}
                   </div>
                 ))}
               </div>

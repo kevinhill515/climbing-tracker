@@ -233,6 +233,22 @@ export const EXERCISES = {
     why:
       "Active recovery after PE is the difference between recovering in 24h and 48h. Skip it and you'll notice.",
   },
+  'boulder-cooldown': {
+    style: 'boulder',
+    name: 'Boulder cool-down',
+    cue:
+      "2-3 easy boulders (V0-V1) at the end of a TR-focused session. Flow only — no hard moves, no deep crimping. Light pulling in a different body position to close out the day.",
+    why:
+      "Complementary movement without added pump. Also a fun way to end an endurance day so it doesn't feel like a slog.",
+  },
+  'tr-cooldown': {
+    style: 'toprope',
+    name: 'Top-rope cool-down',
+    cue:
+      "1-2 easy routes at 5.7 or below. Slow, big breaths, straight arms. Flush pump from the bouldering work and rehearse efficient movement in a tired body.",
+    why:
+      "Light TR after bouldering clears lactic acid faster and cements good movement patterns even when tired. Better than sitting down.",
+  },
   'four-by-four': {
     style: 'boulder',
     name: '4x4 workout',
