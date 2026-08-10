@@ -82,6 +82,8 @@ function session1Steps({ warmupGrade, effGrade, arcGrade, pullSets, pullVariant 
   if (hangboard) {
     steps.push({ ex: 'hangboard-repeaters', dose: 'Optional — only when everything above feels easy' });
   }
+  // Hip mobility at the very end when the body is warm.
+  steps.push({ ex: 'hip-mobility', dose: '5-7 min · body is warm, hip stretches actually take' });
   return steps;
 }
 
@@ -97,6 +99,7 @@ function session2Steps({ warmupGrade, fourByFourGrade, cooldownGrade }) {
     { ex: 'route-reading', dose: 'Read the 4 routes you\'ll do before starting the 4x4' },
     { ex: 'four-by-four',  dose: `4 routes at ${fourByFourGrade}, back-to-back · 4 rounds, 3-5 min rest between rounds` },
     { ex: 'arc-cooldown',  dose: `10-15 min easy on ${cooldownGrade} — flush the pump` },
+    { ex: 'hip-mobility',  dose: '5-7 min hip stretches while warm' },
   ];
 }
 
@@ -112,6 +115,7 @@ function session3Steps({ boulderGrade, driveGrade, includeLead = false }) {
   if (includeLead) {
     steps.push({ ex: 'clip-practice', dose: 'On top rope, practice clip mechanics at each bolt · 1 route' });
   }
+  steps.push({ ex: 'hip-mobility', dose: '5-7 min hip stretches while warm' });
   return steps;
 }
 

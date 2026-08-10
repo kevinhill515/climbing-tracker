@@ -3,7 +3,16 @@
 
 export const EXERCISES = {
   // ============ WARM-UPS ============
+  // Category flags:
+  //   on_wall: true    → climbing exercise. Session sheet uses ClimbLogSheet
+  //                      (grade + result + difficulty) and shows an
+  //                      "On wall" chip / orange badge.
+  //   checklist: [...] → tick-through prep list. Session sheet uses PrepSheet
+  //                      (no set-based logging, just checkoff).
+  //   neither          → strength / accessory. Uses standard ExerciseSheet.
+
   'warmup-route': {
+    on_wall: true,
     name: 'Warm-up route',
     cue:
       "One easy route (5.7 for you right now, or ~3 grades below your flash) — flow it slowly, take controlled rest positions, big breaths. This is the ONE route where nothing hard happens. Save your hard climbing for when you're warm.",
@@ -11,6 +20,7 @@ export const EXERCISES = {
       "Every session starts here. Cold fingers + cold shoulders are the two most reliable ways to end a session with an injury. One easy route wakes up tissue temperature and rehearses movement patterns.",
   },
   'warmup-boulder': {
+    on_wall: true,
     name: 'Warm-up boulder',
     cue:
       "One V0 boulder or short traverse (~10 moves). Flow it slowly — the point is to get your fingers and shoulders warm, not to attempt anything.",
@@ -20,21 +30,40 @@ export const EXERCISES = {
   'joint-prep': {
     name: 'Wrist + shoulder prep',
     cue:
-      "5-min routine before ANY climbing:\n\n" +
-      "1. Wrist circles — 10 each direction, both wrists\n" +
-      "2. Prayer stretch — palms together at chest, lower to waist keeping palms pressed · hold 30s\n" +
-      "3. Reverse prayer — backs of hands together, raise up · hold 30s\n" +
-      "4. Fingers-forward wrist hold — hands flat on floor, fingers toward knees, rock weight forward and back · 30s\n" +
-      "5. Band pull-aparts — 15 reps, hold band wide, squeeze shoulder blades\n" +
-      "6. Arm circles — 10 forward, 10 backward, small then large\n" +
-      "7. Scapular pull-ups on a bar — 8 reps, straight arms, just move the shoulder blades\n\n" +
-      "Should feel like your joints wake up — not like a workout.",
+      "5-min joint-wake-up before any climbing. Tick items off as you go — no need to log reps or time here.",
     why:
       "Fingers get 90% of climbing-prep attention, but shoulders and wrists get loaded just as hard. Neglecting joint prep is how climbers get shoulder impingement + wrist tendinitis by their 40s. 5 minutes for a career of climbing — worth it.",
+    checklist: [
+      { name: 'Wrist circles',              dose: '10 each direction, both wrists' },
+      { name: 'Prayer stretch',             dose: 'Palms together at chest, lower to waist · hold 30s' },
+      { name: 'Reverse prayer',             dose: 'Backs of hands together, raise up · hold 30s' },
+      { name: 'Fingers-forward wrist hold', dose: 'Hands on floor, fingers toward knees, rock weight · 30s' },
+      { name: 'Band pull-aparts',           dose: '15 reps, hold band wide, squeeze shoulder blades' },
+      { name: 'Arm circles',                dose: '10 forward, 10 backward — small then large' },
+      { name: 'Scapular pull-ups',          dose: '8 reps on a bar, straight arms, move only the blades' },
+    ],
+  },
+
+  'hip-mobility': {
+    name: 'Hip mobility',
+    cue:
+      "Hip flexibility drives every drop knee, high step, and heel hook. Do these at the END of a session when the body is warm — 5-7 min total.",
+    why:
+      "Tight hips force you to compensate with arms — every drop knee becomes a lock-off, every high step becomes a campus-move. Getting to 5.12+ WITHOUT hip mobility is possible but exhausting. Getting there WITH it is a smoother ride.",
+    checklist: [
+      { name: 'Downward dog → cobra flow',   dose: '5 slow reps (breath-linked)' },
+      { name: 'Hip flexor lunge stretch',    dose: '45s each side (front knee 90°, hips forward)' },
+      { name: 'Pigeon pose',                 dose: '60s each side (fold over the front shin)' },
+      { name: '90/90 hip stretch',           dose: '45s each side (front + back leg at 90°)' },
+      { name: 'Deep squat hold',             dose: '60s (heels down if possible, else on a book)' },
+      { name: 'Butterfly / seated straddle', dose: '60s (relax knees down)' },
+      { name: 'Frog pose',                   dose: '45s (knees wide, hips back)' },
+    ],
   },
 
   // ============ TECHNIQUE / EFFICIENCY ============
   'efficiency-work': {
+    on_wall: true,
     name: 'Efficiency training',
     cue:
       "Pick a route at your flash grade. Climb it once. Identify ONE thing to improve — foot placement, hip rotation, breath timing, a specific move. Rest 2-5 min. Climb the same route again with that single focus. Repeat 3× per route, then move to 3-5 more routes.",
@@ -42,6 +71,7 @@ export const EXERCISES = {
       "This is THE workout for your level. Technique is your #1 limiter until 5.11a, and even at 5.12 it accounts for more of your ceiling than strength. Repeating a route with a fresh focus is how you actually rewire movement — cycling mindlessly through new routes does not.",
   },
   'movement-drill': {
+    on_wall: true,
     name: 'Movement drill (pick ONE per session)',
     cue:
       "Pick ONE of these each session and drill it deep for 15-20 min on 2-3 easy routes. Rotate weekly — the goal is to make each pattern automatic.\n\n" +
@@ -107,6 +137,7 @@ export const EXERCISES = {
       "Sloppy footwork is the difference between 5.10 and 5.11 for most climbers. Force-training precision at low grades builds it into your default.",
   },
   'no-hands-slab': {
+    on_wall: true,
     name: 'No-hands slab',
     cue:
       "On a slab (up to ~85°), climb using ONLY your feet — hands touch the wall for balance only, never grip. Watch every foot placement, trust the rubber, weight the feet.",
@@ -123,6 +154,7 @@ export const EXERCISES = {
 
   // ============ ENDURANCE ============
   'arc-training': {
+    on_wall: true,
     name: 'ARC training',
     cue:
       "Aerobic Restoration + Capillarity: 20-30 min of CONTINUOUS climbing at a grade 3-4 letters below your flash (usually 5.7 for you now). You should be able to hold a conversation. If you get pumped, you're going too hard — slow down. Traverse if you run out of route. NO stopping.",
@@ -130,6 +162,7 @@ export const EXERCISES = {
       "ARC builds capillary density in the forearms — the physiological basis for climbing endurance. It doesn't feel like training when you do it, but it's what separates a 5.11 climber who pumps out at bolt 4 from one who cruises to the anchors.",
   },
   'arc-cooldown': {
+    on_wall: true,
     name: 'ARC cool-down',
     cue:
       "10-15 min of easy continuous climbing at 5.7 or below. Not for training — for actively flushing out lactic acid and cementing efficient movement in a tired body.",
@@ -137,6 +170,7 @@ export const EXERCISES = {
       "Ending a hard session on the wall with easy movement helps recovery and reinforces good technique even under fatigue.",
   },
   'four-by-four': {
+    on_wall: true,
     name: '4x4 workout',
     cue:
       "Pick 4 routes at ~2 grades below your flash. Climb all 4 back-to-back with minimal rest (~30-60s between). After the 4th, rest 3-5 min. That's 1 round. Complete 4 rounds. Brutal but transformative.",
@@ -144,6 +178,7 @@ export const EXERCISES = {
       "Power endurance = ability to keep pulling hard when pumped. This is the workout that turns 'I can do the moves' into 'I can send the route.' Central to breaking into the 5.11s.",
   },
   'route-repeats': {
+    on_wall: true,
     name: 'Route repeats / laps',
     cue:
       "Pick 1-2 routes at your flash grade. Climb each 2-3 times with 3-5 min rest between attempts. Same route = same moves = increasing efficiency each attempt as you optimize sequence, breathing, rest positions.",
@@ -188,6 +223,7 @@ export const EXERCISES = {
       "Modern gym setting is volume-heavy. Slopers also train grip through the whole hand/forearm rather than isolated pulleys.",
   },
   'boulder-block': {
+    on_wall: true,
     name: 'Bouldering block',
     cue:
       "30-45 min of focused bouldering on problems at or slightly above your flash boulder grade (V2-V4 for you). Rest generously between attempts (3-5 min). This is POWER work, not volume — quality attempts, not many.",
@@ -211,6 +247,7 @@ export const EXERCISES = {
       "Clean, fast clips separate stressed leaders from confident ones. Fumbling a clip is the #1 preventable cause of taking a whipper. Ground drill until it's boring.",
   },
   'mock-lead': {
+    on_wall: true,
     name: 'Mock lead',
     cue:
       "Climb top rope on a route while trailing a lead rope. At each bolt, clip the trailing rope as if leading. Get used to the extra rope, the drag, the clip stances — all with a top rope catching you.",
@@ -218,6 +255,7 @@ export const EXERCISES = {
       "Bridge between top rope and lead. Removes the fall consequence but rehearses everything else. Critical before your first real lead.",
   },
   'fall-practice': {
+    on_wall: true,
     name: 'Fall practice',
     cue:
       "On lead, above a bolt (start with feet at bolt height, progress to 1-2 ft above): let go. Fall. Do this INTENTIONALLY in a controlled setting with an experienced belayer. Start small, build up. 5-10 falls per session, well below your redpoint grade.",
@@ -225,6 +263,7 @@ export const EXERCISES = {
       "The fear of falling is what caps most climbers below their physical potential. Deliberate controlled fall practice desensitizes the fear response. You'll climb harder because you'll try harder.",
   },
   'lead-cert-drill': {
+    on_wall: true,
     name: 'Lead certification drill',
     cue:
       "Simulate the gym's lead cert exam: lead-climb 5.9, clip cleanly at every bolt, don't back-clip, don't Z-clip, handle rope smoothly, take a controlled fall above bolt 3. Do repeatedly until you pass a mock cert with a partner watching.",

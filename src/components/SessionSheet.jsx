@@ -1,5 +1,7 @@
 import Sheet from './Sheet.jsx';
 import ExerciseSheet from './ExerciseSheet.jsx';
+import PrepSheet from './PrepSheet.jsx';
+import ClimbLogSheet from './ClimbLogSheet.jsx';
 import { getExercise } from '../data/exercises.js';
 import { SESSION_META } from '../data/program.js';
 import { useStore } from '../store.jsx';
@@ -8,23 +10,43 @@ import { useMemo, useState } from 'react';
 
 const TODAY = today;
 
-// The main session flow — steps in order, each opens ExerciseSheet with
-// detailed how-to + quick log. Session 4 (full-body / antagonist) uses
-// this same shell — its steps are the antagonist / legs / core exercises.
+// The main session flow — routes each step to the right sheet based on
+// exercise metadata:
+//   ex.checklist   → PrepSheet (tick-through, no logging fields)
+//   ex.on_wall     → ClimbLogSheet (grade + result + difficulty)
+//   otherwise      → ExerciseSheet (sets/reps/hold/load — strength/accessory)
+//
+// Visual: number badge is color-coded by type — orange for on-wall
+// (the main event), violet for prep (get ready), zinc for strength.
 export default function SessionSheet({ open, onClose, sessionType, phase }) {
   const { actions, data } = useStore();
-  const [exerciseOpen, setExerciseOpen] = useState(null);
+  const [exerciseOpen, setExerciseOpen] = useState(null);   // { id, prescription } — strength/accessory
+  const [prepOpen, setPrepOpen] = useState(null);           // exerciseId — prep checklist
+  const [climbOpen, setClimbOpen] = useState(null);         // { id, prescription } — on-wall attempt
 
+  // Combined "logged today" counts — pulls both exercise logs AND grade
+  // attempts (which the ClimbLogSheet writes to grades.[style].attempts).
   const todayStr = TODAY();
   const todayCounts = useMemo(() => {
     const m = {};
+    // Off-wall exercise logs
     for (const l of data?.logs || []) {
       if (l.date !== todayStr) continue;
       if (l.sessionType && l.sessionType !== sessionType) continue;
       m[l.exerciseId] = (m[l.exerciseId] || 0) + 1;
     }
+    // On-wall grade attempts (from ClimbLogSheet saves)
+    for (const style of ['toprope', 'boulder']) {
+      const attempts = data?.grades?.[style]?.attempts || [];
+      for (const a of attempts) {
+        if (a.date !== todayStr) continue;
+        if (a.sessionType && a.sessionType !== sessionType) continue;
+        if (!a.exerciseId) continue;
+        m[a.exerciseId] = (m[a.exerciseId] || 0) + 1;
+      }
+    }
     return m;
-  }, [data?.logs, todayStr, sessionType]);
+  }, [data?.logs, data?.grades, todayStr, sessionType]);
 
   if (!sessionType || !phase) return null;
   const session = phase.sessions[sessionType];
@@ -33,6 +55,16 @@ export default function SessionSheet({ open, onClose, sessionType, phase }) {
   const wid = weekId();
   const isDone = !!data?.weeks?.[wid]?.[sessionType];
   const meta = SESSION_META[sessionType];
+
+  const openStep = (ex, dose) => {
+    if (ex.checklist) {
+      setPrepOpen({ id: getIdForCurrentStep(session, ex) });
+    } else if (ex.on_wall) {
+      setClimbOpen({ id: getIdForCurrentStep(session, ex), prescription: dose });
+    } else {
+      setExerciseOpen({ id: getIdForCurrentStep(session, ex), prescription: dose });
+    }
+  };
 
   return (
     <>
@@ -58,18 +90,43 @@ export default function SessionSheet({ open, onClose, sessionType, phase }) {
             {session.steps.map((step, i) => {
               const ex = getExercise(step.ex);
               const count = todayCounts[step.ex] || 0;
+              const kind = ex.on_wall ? 'wall' : ex.checklist ? 'prep' : 'off';
+              const badgeStyle =
+                kind === 'wall' ? 'bg-orange-500/25 text-orange-200' :
+                kind === 'prep' ? 'bg-violet-500/25 text-violet-200' :
+                'bg-zinc-700 text-zinc-300';
               return (
                 <button
                   key={i}
-                  onClick={() => setExerciseOpen({ id: step.ex, prescription: step.dose })}
+                  onClick={() => {
+                    if (ex.checklist) {
+                      setPrepOpen({ id: step.ex });
+                    } else if (ex.on_wall) {
+                      setClimbOpen({ id: step.ex, prescription: step.dose });
+                    } else {
+                      setExerciseOpen({ id: step.ex, prescription: step.dose });
+                    }
+                  }}
                   className={`w-full text-left bg-zinc-800/50 hover:bg-zinc-800 border rounded-xl p-3 transition active:scale-[0.99] ${count > 0 ? 'border-orange-500/40' : 'border-zinc-800'}`}
                 >
                   <div className="flex items-start gap-3">
-                    <span className="mt-0.5 inline-flex w-6 h-6 rounded-full bg-zinc-700 text-zinc-300 text-[11px] items-center justify-center flex-shrink-0 font-bold">
+                    <span className={`mt-0.5 inline-flex w-6 h-6 rounded-full ${badgeStyle} text-[11px] items-center justify-center flex-shrink-0 font-bold`}>
                       {i + 1}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-zinc-100 truncate">{ex.name}</div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-medium text-zinc-100">{ex.name}</span>
+                        {kind === 'wall' && (
+                          <span className="text-[9px] uppercase tracking-wider bg-orange-500/20 text-orange-300 px-1.5 py-0.5 rounded">
+                            On wall
+                          </span>
+                        )}
+                        {kind === 'prep' && (
+                          <span className="text-[9px] uppercase tracking-wider bg-violet-500/20 text-violet-300 px-1.5 py-0.5 rounded">
+                            Prep
+                          </span>
+                        )}
+                      </div>
                       <div className="text-xs text-zinc-400 mt-0.5">{step.dose}</div>
                     </div>
                     {count > 0 ? (
@@ -110,6 +167,26 @@ export default function SessionSheet({ open, onClose, sessionType, phase }) {
         sessionType={sessionType}
         onClose={() => setExerciseOpen(null)}
       />
+
+      <PrepSheet
+        open={!!prepOpen}
+        exerciseId={prepOpen?.id}
+        sessionType={sessionType}
+        onClose={() => setPrepOpen(null)}
+      />
+
+      <ClimbLogSheet
+        open={!!climbOpen}
+        exerciseId={climbOpen?.id}
+        prescription={climbOpen?.prescription}
+        sessionType={sessionType}
+        defaultStyle={sessionType === 'Session 3' ? 'boulder' : 'toprope'}
+        onClose={() => setClimbOpen(null)}
+      />
     </>
   );
 }
+
+// tiny helper (kept for future — currently the id is just the ex.id we
+// already have, but this makes the intent obvious in the callers)
+function getIdForCurrentStep(_session, _ex) { return null; }
