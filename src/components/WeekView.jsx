@@ -57,35 +57,18 @@ export default function WeekView() {
 
       {/* This week — same shape as PhaseJourney above (thin bar-row card).
           Four segments, one per session; orange when done, dim otherwise.
-          Session initial below each bar for identification. */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3 mb-3">
-        <div className="flex items-center justify-between mb-2">
-          <div className="text-[11px] uppercase tracking-wide text-zinc-500">This week</div>
-          <div className="text-[11px] text-zinc-400">{doneCount} of {SESSION_TYPES.length}</div>
-        </div>
-        <div className="flex gap-1">
-          {SESSION_TYPES.map((s) => {
-            const done = !!myWk[s];
-            const meta = SESSION_META[s];
-            const initial = meta.name.charAt(0);
-            return (
-              <div key={s} className="flex-1 min-w-0">
-                <div className={`h-1.5 rounded overflow-hidden ${done ? 'bg-orange-400' : 'bg-zinc-800'}`} />
-                <div className={`text-[9px] mt-1 text-center truncate ${done ? 'text-orange-300' : 'text-zinc-600'}`}>
-                  {initial}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+          Full session name below each bar, tightly sized to fit. */}
+      <ThisWeekTile
+        myWk={myWk}
+        doneCount={doneCount}
+        drillCount={weekDrillCount(data, wid)}
+      />
 
-      <WeeklyScorecard data={data} wid={wid} style="toprope" />
-      <WeeklyScorecard data={data} wid={wid} style="boulder" />
-
-      {/* Session cards — tightened so all 4 fit on screen without scrolling.
-          Smaller padding, single-line focus text (truncate on overflow),
-          smaller icon + check circle. */}
+      {/* Session cards go BEFORE the analytics scorecards — the primary
+          action (which session to do next) should be the first thing
+          visible without scrolling. Scorecards follow below.
+          Tightened so all 4 fit on screen: smaller padding, single-line
+          focus text, smaller icon + check circle. */}
       <div className="space-y-2">
         {SESSION_TYPES.map((s) => {
           const done = !!myWk[s];
@@ -124,6 +107,13 @@ export default function WeekView() {
         wid={wid}
         onLog={() => setExtraOpen(true)}
       />
+
+      {/* Weekly scorecards — below sessions so scroll gets you to
+          analytics without hiding the primary action. */}
+      <div className="mt-4">
+        <WeeklyScorecard data={data} wid={wid} style="toprope" />
+        <WeeklyScorecard data={data} wid={wid} style="boulder" />
+      </div>
 
       {/* Activity heatmap — tap a cell to see that day's logs */}
       <div className="mt-4">
@@ -177,6 +167,52 @@ export default function WeekView() {
   );
 }
 
+// Slim "This week" tile — matches PhaseJourney's shape (bar + label row),
+// one segment per session with the full session name. Drill count sits
+// in the header on the right — one authoritative number, no per-style
+// duplication.
+function ThisWeekTile({ myWk, doneCount, drillCount }) {
+  return (
+    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3 mb-3">
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-[11px] uppercase tracking-wide text-zinc-500">This week</div>
+        <div className="flex items-center gap-3 text-[11px] text-zinc-400">
+          <span>{doneCount} of {SESSION_TYPES.length}</span>
+          <span className="text-zinc-600">·</span>
+          <span>drills <span className="tabular-nums text-zinc-300">{drillCount}/5</span></span>
+        </div>
+      </div>
+      <div className="flex gap-1">
+        {SESSION_TYPES.map((s) => {
+          const done = !!myWk[s];
+          const meta = SESSION_META[s];
+          return (
+            <div key={s} className="flex-1 min-w-0">
+              <div className={`h-1.5 rounded overflow-hidden ${done ? 'bg-orange-400' : 'bg-zinc-800'}`} />
+              <div className={`text-[9px] mt-1 text-center truncate ${done ? 'text-orange-300' : 'text-zinc-600'}`}>
+                {meta.name}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Unique drills practiced this week, aggregated across TR + boulder —
+// used by ThisWeekTile so the number lives in ONE place, not repeated
+// on both scorecards.
+function weekDrillCount(data, wid) {
+  const drills = new Set();
+  for (const style of ['toprope', 'boulder']) {
+    for (const a of (data.grades?.[style]?.attempts || [])) {
+      if (a.weekId === wid && a.drillFocus) drills.add(a.drillFocus);
+    }
+  }
+  return drills.size;
+}
+
 // Weekly scorecard — what actually happened this week, broken out by the
 // Bechtel/Hörst intensity buckets so you can see the mix at a glance.
 // Runs per-style (toprope / boulder) — one card each.
@@ -205,12 +241,6 @@ function WeeklyScorecard({ data, wid, style }) {
       else if (o < flashOrd) moderate++;
       else stretch++;
       if (a.drillFocus) drills.add(a.drillFocus);
-    }
-    // Drills apply to both styles — aggregate across TR AND boulder for
-    // BOTH cards so the count is consistent whichever card you look at.
-    const otherStyle = isTR ? 'boulder' : 'toprope';
-    for (const a of (data.grades?.[otherStyle]?.attempts || [])) {
-      if (a.weekId === wid && a.drillFocus) drills.add(a.drillFocus);
     }
     const total = focus + moderate + stretch;
     const focusPct    = total ? Math.round((focus    / total) * 100) : 0;
@@ -263,18 +293,17 @@ function WeeklyScorecard({ data, wid, style }) {
           accent="rose"
         />
       </div>
-      <div className="px-3 pb-3">
-        <MiniStat label="Drills practiced" value={stats.drills > 0 ? `${stats.drills} of 5` : '0'} />
-      </div>
       {stats.total > 0 && (
         <div className="px-4 pb-3 text-[10px] leading-tight">
           <span className={
             stats.focusPct >= 20 && stats.focusPct <= 35 ? 'text-emerald-400' :
             stats.focusPct < 20 ? 'text-amber-400' : 'text-rose-400'
           }>
-            {stats.focusPct >= 20 && stats.focusPct <= 35 ? 'On target for focus reps ✓'
-              : stats.focusPct < 20 ? '↑ more focus reps at flash'
-              : '↓ ease the flash volume'}
+            {stats.focusPct >= 20 && stats.focusPct <= 35
+              ? '✓ Good balance of hard vs easy climbs this week'
+              : stats.focusPct < 20
+                ? `↑ Add more attempts at ${flash} — you're mostly climbing below flash`
+                : `↓ Too many climbs at your limit — mix in easier laps to recover`}
           </span>
         </div>
       )}
