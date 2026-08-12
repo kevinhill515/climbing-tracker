@@ -200,13 +200,13 @@ function ClimbsList({ data, onEdit }) {
                     {c.routeName ? (
                       <div className="text-zinc-100 truncate">{c.routeName}</div>
                     ) : (
-                      <div className="text-zinc-500 italic">(tap to name)</div>
+                      <div className="text-orange-400/80 italic underline decoration-dotted">+ name this route</div>
                     )}
                     {c.notes && <div className="text-zinc-500 truncate text-[10px]">{c.notes}</div>}
                   </div>
                   <ResultChip result={c.result} />
                   {c.difficulty && <span className="text-[10px] text-zinc-500 tabular-nums flex-shrink-0">{c.difficulty}/10</span>}
-                  <span className="text-zinc-600 text-sm flex-shrink-0">›</span>
+                  <span className="text-zinc-500 text-xs flex-shrink-0" title="Edit">✎</span>
                 </button>
               </li>
             ))}

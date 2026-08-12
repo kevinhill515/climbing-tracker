@@ -1,4 +1,5 @@
 import Sheet from './Sheet.jsx';
+import EditClimbSheet from './EditClimbSheet.jsx';
 import { useStore } from '../store.jsx';
 import { useEffect, useMemo, useState } from 'react';
 import { getExercise, DRILL_EXPLANATIONS } from '../data/exercises.js';
@@ -27,6 +28,7 @@ export default function ClimbLogSheet({
   const [difficulty, setDifficulty] = useState(5);
   const [notes, setNotes]           = useState('');
   const [drillFocus, setDrillFocus] = useState(null);    // key of selected drill (if applicable)
+  const [editClimb, setEditClimb] = useState(null);      // { id, style, … } — tap a logged row
 
   const todayStr = today();
 
@@ -81,6 +83,7 @@ export default function ClimbLogSheet({
   };
 
   return (
+    <>
     <Sheet open={open} onClose={onClose} title={ex.name} fullHeight>
       <div className="px-5 py-4 space-y-4">
 
@@ -133,26 +136,27 @@ export default function ClimbLogSheet({
                   ? drillOptions?.find((d) => d.key === c.drillFocus)?.label
                   : null;
                 return (
-                  <li key={c.id} className="bg-zinc-800/60 border border-zinc-800 rounded-lg px-3 py-2 flex items-center gap-2 text-xs">
-                    <span className="tabular-nums text-orange-300 text-sm font-bold w-14 flex-shrink-0">{c.grade}</span>
-                    <div className="flex-1 min-w-0">
-                      {c.routeName
-                        ? <div className="text-zinc-100 truncate">{c.routeName}</div>
-                        : <div className="text-zinc-500 italic">(unnamed)</div>}
-                      {drillLabel && (
-                        <div className="text-[10px] text-orange-300/80 mt-0.5">drill: {drillLabel}</div>
-                      )}
-                      {c.notes && <div className="text-zinc-500 truncate text-[10px] mt-0.5">{c.notes}</div>}
-                    </div>
-                    <ResultChip result={c.result} />
-                    <span className="text-[10px] text-zinc-400 tabular-nums flex-shrink-0">
-                      {c.difficulty}/10
-                    </span>
+                  <li key={c.id}>
                     <button
-                      onClick={() => actions.removeGradeAttempt(c.style, c.id)}
-                      className="text-zinc-500 hover:text-rose-400 text-sm px-1 flex-shrink-0"
-                      aria-label="Delete this climb"
-                    >×</button>
+                      onClick={() => setEditClimb(c)}
+                      className="w-full text-left bg-zinc-800/60 border border-zinc-800 rounded-lg px-3 py-2 flex items-center gap-2 text-xs hover:bg-zinc-800 active:bg-zinc-800/90"
+                    >
+                      <span className="tabular-nums text-orange-300 text-sm font-bold w-14 flex-shrink-0">{c.grade}</span>
+                      <div className="flex-1 min-w-0">
+                        {c.routeName
+                          ? <div className="text-zinc-100 truncate">{c.routeName}</div>
+                          : <div className="text-orange-400/80 italic underline decoration-dotted">+ name this route</div>}
+                        {drillLabel && (
+                          <div className="text-[10px] text-orange-300/80 mt-0.5">drill: {drillLabel}</div>
+                        )}
+                        {c.notes && <div className="text-zinc-500 truncate text-[10px] mt-0.5">{c.notes}</div>}
+                      </div>
+                      <ResultChip result={c.result} />
+                      <span className="text-[10px] text-zinc-400 tabular-nums flex-shrink-0">
+                        {c.difficulty}/10
+                      </span>
+                      <span className="text-zinc-500 text-xs flex-shrink-0" title="Edit">✎</span>
+                    </button>
                   </li>
                 );
               })}
@@ -283,6 +287,13 @@ export default function ClimbLogSheet({
         )}
       </div>
     </Sheet>
+
+    <EditClimbSheet
+      open={!!editClimb}
+      climb={editClimb ? { ...editClimb, style: editClimb.style } : null}
+      onClose={() => setEditClimb(null)}
+    />
+    </>
   );
 }
 

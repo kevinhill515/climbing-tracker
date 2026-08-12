@@ -240,11 +240,19 @@ export function StoreProvider({ children }) {
   }, [state.hydrated, pull]);
 
   // ---------- debounced persist ----------
+  // localStorage writes happen UNCONDITIONALLY once hydrated — the
+  // readyToPush gate only defers the Supabase upsert. Previously both
+  // were gated, which meant a toggleSession during the initial pull
+  // window (before readyToPush) was silently discarded when pull()
+  // completed and dispatched setUserData with the pre-toggle remote
+  // state. localStorage now records every change immediately, so the
+  // subsequent pull sees a newer local timestamp and skips overwrite.
   const pushTimer = useRef(null);
   useEffect(() => {
-    if (!state.hydrated || !readyToPush) return;
+    if (!state.hydrated) return;
     const stamped = { ...state.data, _touched: Date.now() };
     localStorage.setItem(LS_DATA, JSON.stringify(stamped));
+    if (!readyToPush) return;
     if (pushTimer.current) clearTimeout(pushTimer.current);
     pushTimer.current = setTimeout(() => {
       upsertUser(USER, stamped);
