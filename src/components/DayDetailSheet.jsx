@@ -60,8 +60,8 @@ export default function DayDetailSheet({ open, date, onClose }) {
                       </div>
                       <div className="text-right text-xs">
                         {a.sent
-                          ? <span className={`font-bold ${a.flash ? 'text-emerald-400' : 'text-orange-300'}`}>{a.flash ? '⚡ FLASH' : `✓ send · ${a.attempts || 1} tries`}</span>
-                          : <span className="text-zinc-400">worked · {a.attempts || 1} tries</span>
+                          ? <span className={`font-bold ${a.flash ? 'text-emerald-400' : 'text-orange-300'}`}>{a.flash ? '⚡ FLASH' : `✓ complete · ${a.attempts || 1} tries`}</span>
+                          : <span className="text-zinc-400">✗ fail · {a.attempts || 1} tries</span>
                         }
                       </div>
                     </li>

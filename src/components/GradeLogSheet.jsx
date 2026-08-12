@@ -69,14 +69,14 @@ export default function GradeLogSheet({ open, onClose, style }) {
             <button
               onClick={() => { setSent(true); setFlash(false); }}
               className={`py-3 rounded-xl text-sm font-bold border ${sent && !flash ? 'bg-orange-500 text-zinc-950 border-orange-500' : 'bg-zinc-800 border-zinc-700 text-zinc-300'}`}
-            >✓ Send</button>
+            >✓ Complete</button>
             <button
               onClick={() => { setSent(false); setFlash(false); }}
               className={`py-3 rounded-xl text-sm font-bold border ${!sent ? 'bg-zinc-100 text-zinc-950 border-zinc-100' : 'bg-zinc-800 border-zinc-700 text-zinc-300'}`}
-            >Worked</button>
+            >✗ Fail</button>
           </div>
           <div className="mt-1 text-[11px] text-zinc-500 leading-relaxed">
-            Flash = clean first try, no beta. Send = eventually sent (may have taken multiple tries). Worked = didn't send, tried and rested / fell.
+            Flash = clean first try, no beta. Complete = sent (may have taken multiple tries). Fail = didn't send.
           </div>
         </div>
 

@@ -233,14 +233,20 @@ function WeeklyScorecard({ data, wid, style }) {
     const attempts = (data.grades?.[style]?.attempts || []).filter((a) => a.weekId === wid);
     const flashOrd = ordinalOf(style, flash);
     let focus = 0, moderate = 0, stretch = 0;
-    const drills = new Set();
+    // Success at the FOCUS grade specifically — the metric that actually
+    // tells you whether the flash grade is set right. High success rate
+    // at flash = the bump signal.
+    let focusFlashes = 0, focusCompletes = 0;
     for (const a of attempts) {
       const o = ordinalOf(style, a.grade);
       if (o < 0) continue;
-      if (o === flashOrd) focus++;
+      if (o === flashOrd) {
+        focus++;
+        if (a.flash && a.sent) focusFlashes++;
+        else if (a.sent) focusCompletes++;
+      }
       else if (o < flashOrd) moderate++;
       else stretch++;
-      if (a.drillFocus) drills.add(a.drillFocus);
     }
     const total = focus + moderate + stretch;
     const focusPct    = total ? Math.round((focus    / total) * 100) : 0;
@@ -249,10 +255,10 @@ function WeeklyScorecard({ data, wid, style }) {
     return {
       focus, moderate, stretch,
       focusPct, moderatePct, stretchPct,
+      focusFlashes, focusCompletes,
       total,
-      drills: drills.size,
     };
-  }, [data.grades, wid, style, flash, isTR]);
+  }, [data.grades, wid, style, flash]);
 
   const styleChipClass =
     styleAccent === 'sky' ? 'text-sky-300 bg-sky-500/15 border-sky-500/30'
@@ -293,20 +299,46 @@ function WeeklyScorecard({ data, wid, style }) {
           accent="rose"
         />
       </div>
-      {stats.total > 0 && (
-        <div className="px-4 pb-3 text-[10px] leading-tight">
-          <span className={
-            stats.focusPct >= 20 && stats.focusPct <= 35 ? 'text-emerald-400' :
-            stats.focusPct < 20 ? 'text-amber-400' : 'text-rose-400'
-          }>
-            {stats.focusPct >= 20 && stats.focusPct <= 35
-              ? '✓ Good balance of hard vs easy climbs this week'
-              : stats.focusPct < 20
-                ? `↑ Add more attempts at ${flash} — you're mostly climbing below flash`
-                : `↓ Too many climbs at your limit — mix in easier laps to recover`}
-          </span>
-        </div>
-      )}
+      <ScorecardHint stats={stats} flash={flash} />
+    </div>
+  );
+}
+
+// Hint reflects your ACTUAL performance, not just volume distribution.
+// Flashing most of your focus routes is a bump signal, NOT a "too much at
+// limit" signal — if you're flashing it, it's not at your limit.
+function ScorecardHint({ stats, flash }) {
+  if (stats.total < 3) return null; // too little data to hint yet
+  const { focus, focusFlashes, focusPct } = stats;
+  const flashRate = focus > 0 ? focusFlashes / focus : 0;
+
+  // Strong bump signal: 3+ flashes AT flash grade AND majority flashed
+  if (focusFlashes >= 3 && flashRate >= 0.5) {
+    return (
+      <div className="px-4 pb-3 text-[10px] leading-tight text-emerald-400">
+        ↑ You flashed {focusFlashes} at {flash} — try bumping your flash grade
+      </div>
+    );
+  }
+  // Not enough focus reps — user needs to test themselves at flash
+  if (focusPct < 20) {
+    return (
+      <div className="px-4 pb-3 text-[10px] leading-tight text-amber-400">
+        ↑ Add more attempts at {flash} — you're mostly climbing below flash
+      </div>
+    );
+  }
+  // Focus reps present but not flashing them — good hard work, no bump yet
+  if (focus > 0 && flashRate < 0.3) {
+    return (
+      <div className="px-4 pb-3 text-[10px] leading-tight text-zinc-400">
+        Focus routes are challenging you — keep drilling before bumping
+      </div>
+    );
+  }
+  return (
+    <div className="px-4 pb-3 text-[10px] leading-tight text-emerald-400">
+      ✓ Good balance of hard vs easy climbs this week
     </div>
   );
 }

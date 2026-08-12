@@ -150,7 +150,7 @@ function ClimbsList({ data, onEdit }) {
                 <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/20">
                   {p.style === 'toprope' ? 'TR' : 'V'}
                 </span>
-                <span>{p.type === 'flash' ? 'first flash' : 'first send'}</span>
+                <span>{p.type === 'flash' ? 'first flash' : 'first complete'}</span>
                 <span className="ml-auto text-[10px] tabular-nums text-emerald-300/70">{p.date}</span>
               </li>
             ))}

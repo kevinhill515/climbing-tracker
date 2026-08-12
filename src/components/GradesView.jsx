@@ -101,7 +101,7 @@ function StyleCard({ style, data, currentFlash, onSetFlash, onLog, onSetProject 
           <div className="mt-1 flex items-baseline gap-3">
             <BigGrade label="Flash" grade={highestFlash} accent="emerald" />
             <BigGrade label="Project" grade={data.project || null} accent="orange" />
-            <BigGrade label="Sent" grade={highestSent} accent="zinc" />
+            <BigGrade label="Complete" grade={highestSent} accent="zinc" />
           </div>
         </div>
         <button
