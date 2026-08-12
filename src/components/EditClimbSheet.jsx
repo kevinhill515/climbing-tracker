@@ -1,0 +1,135 @@
+import Sheet from './Sheet.jsx';
+import { useStore } from '../store.jsx';
+import { useEffect, useState } from 'react';
+
+// Edit a logged climb after the fact — route name, notes, difficulty,
+// and result. Grade + date are frozen (change those by deleting and
+// re-logging). Delete lives at the bottom.
+export default function EditClimbSheet({ open, onClose, climb }) {
+  const { actions } = useStore();
+  const [routeName, setRouteName]   = useState('');
+  const [notes, setNotes]           = useState('');
+  const [difficulty, setDifficulty] = useState(5);
+  const [result, setResult]         = useState('flash');
+
+  useEffect(() => {
+    if (open && climb) {
+      setRouteName(climb.routeName || '');
+      setNotes(climb.notes || '');
+      setDifficulty(climb.difficulty || 5);
+      setResult(climb.result || (climb.flash ? 'flash' : climb.sent ? 'complete' : 'fail'));
+    }
+  }, [open, climb]);
+
+  if (!open || !climb) return null;
+
+  const save = () => {
+    actions.updateGradeAttempt(climb.style, climb.id, {
+      routeName: routeName.trim() || undefined,
+      notes: notes.trim(),
+      difficulty,
+      result,
+      sent: result !== 'fail',
+      flash: result === 'flash',
+    });
+    onClose();
+  };
+
+  const del = () => {
+    actions.removeGradeAttempt(climb.style, climb.id);
+    onClose();
+  };
+
+  return (
+    <Sheet open={open} onClose={onClose} title="Edit climb" fullHeight>
+      <div className="px-5 py-4 space-y-4">
+
+        {/* Read-only header row: date + style + grade — these are frozen */}
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-zinc-500 tabular-nums">{climb.date}</span>
+          <span className={`text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded ${
+            climb.style === 'toprope' ? 'bg-sky-500/20 text-sky-300' : 'bg-fuchsia-500/20 text-fuchsia-300'
+          }`}>
+            {climb.style === 'toprope' ? 'Top rope' : 'Boulder'}
+          </span>
+          <span className="text-orange-300 font-bold tabular-nums">{climb.grade}</span>
+        </div>
+
+        <div>
+          <label className="text-[10px] uppercase tracking-wide text-zinc-500 mb-1 block">Route / problem name</label>
+          <input
+            type="text"
+            value={routeName}
+            onChange={(e) => setRouteName(e.target.value)}
+            placeholder="(unnamed)"
+            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500"
+          />
+        </div>
+
+        <div>
+          <div className="text-[10px] uppercase tracking-wide text-zinc-500 mb-1">Result</div>
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              onClick={() => setResult('flash')}
+              className={`py-3 rounded-xl text-sm font-bold border ${result === 'flash' ? 'bg-emerald-500 text-zinc-950 border-emerald-500' : 'bg-zinc-800 border-zinc-700 text-zinc-300'}`}
+            >⚡ Flash</button>
+            <button
+              onClick={() => setResult('complete')}
+              className={`py-3 rounded-xl text-sm font-bold border ${result === 'complete' ? 'bg-orange-500 text-zinc-950 border-orange-500' : 'bg-zinc-800 border-zinc-700 text-zinc-300'}`}
+            >✓ Complete</button>
+            <button
+              onClick={() => setResult('fail')}
+              className={`py-3 rounded-xl text-sm font-bold border ${result === 'fail' ? 'bg-zinc-100 text-zinc-950 border-zinc-100' : 'bg-zinc-800 border-zinc-700 text-zinc-300'}`}
+            >✗ Fail</button>
+          </div>
+        </div>
+
+        <div>
+          <div className="text-[10px] uppercase tracking-wide text-zinc-500 mb-1">Difficulty (1 = easy, 10 = at limit)</div>
+          <div className="grid grid-cols-10 gap-1">
+            {[1,2,3,4,5,6,7,8,9,10].map((n) => (
+              <button
+                key={n}
+                onClick={() => setDifficulty(n)}
+                className={`py-2 rounded-md text-xs font-bold border ${
+                  difficulty === n
+                    ? n >= 8 ? 'bg-rose-500 text-zinc-950 border-rose-500'
+                    : n >= 5 ? 'bg-amber-500 text-zinc-950 border-amber-500'
+                    : 'bg-emerald-500 text-zinc-950 border-emerald-500'
+                    : 'bg-zinc-800 border-zinc-700 text-zinc-300'
+                }`}
+              >{n}</button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="text-[10px] uppercase tracking-wide text-zinc-500 mb-1 block">Notes</label>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Beta, crux, feeling…"
+            rows={3}
+            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 pt-2">
+          <button
+            onClick={onClose}
+            className="bg-zinc-800 hover:bg-zinc-700 text-zinc-100 font-bold rounded-xl py-3 text-sm"
+          >Cancel</button>
+          <button
+            onClick={save}
+            className="bg-orange-500 hover:bg-orange-400 text-zinc-950 font-bold rounded-xl py-3 text-sm"
+          >Save</button>
+        </div>
+
+        <button
+          onClick={del}
+          className="w-full text-rose-400 hover:text-rose-300 text-xs py-2"
+        >Delete this climb</button>
+      </div>
+    </Sheet>
+  );
+}

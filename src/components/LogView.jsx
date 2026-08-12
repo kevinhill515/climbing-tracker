@@ -1,7 +1,10 @@
 import { useStore } from '../store.jsx';
 import { useMemo, useState } from 'react';
 import DayDetailSheet from './DayDetailSheet.jsx';
+import EditClimbSheet from './EditClimbSheet.jsx';
+import ExportSheet from './ExportSheet.jsx';
 import { gradesFor, ordinalOf, STYLE_LABELS, flashAt } from '../data/grades.js';
+import { today, weekStartOf } from '../utils/dates.js';
 
 // Log tab — everything logged, three views:
 //   Sessions:    day-by-day list (was the old HistoryView)
@@ -12,11 +15,19 @@ export default function LogView() {
   const { data, actions } = useStore();
   const [view, setView] = useState('sessions'); // 'sessions' | 'climbs' | 'weekly'
   const [pickedDate, setPickedDate] = useState(null);
+  const [editClimb, setEditClimb] = useState(null);
+  const [exportOpen, setExportOpen] = useState(false);
   if (!data) return null;
 
   return (
     <div className="px-4 pt-3 pb-24 max-w-xl mx-auto fade-in">
-      <h1 className="text-xl font-bold text-zinc-100 mb-3">Log</h1>
+      <div className="flex items-center justify-between mb-3">
+        <h1 className="text-xl font-bold text-zinc-100">Log</h1>
+        <button
+          onClick={() => setExportOpen(true)}
+          className="text-xs text-zinc-400 hover:text-zinc-100 border border-zinc-700 rounded-lg px-3 py-1.5"
+        >Export ↓</button>
+      </div>
 
       <div className="grid grid-cols-3 gap-2 mb-4">
         <TabBtn active={view === 'sessions'} onClick={() => setView('sessions')} label="Sessions" />
@@ -25,10 +36,12 @@ export default function LogView() {
       </div>
 
       {view === 'sessions' && <SessionsList data={data} onPickDate={setPickedDate} />}
-      {view === 'climbs'   && <ClimbsList data={data} onRemove={(style, id) => actions.removeGradeAttempt(style, id)} />}
+      {view === 'climbs'   && <ClimbsList data={data} onEdit={setEditClimb} />}
       {view === 'weekly'   && <WeeklyMixList data={data} />}
 
       <DayDetailSheet open={!!pickedDate} date={pickedDate} onClose={() => setPickedDate(null)} />
+      <EditClimbSheet open={!!editClimb} climb={editClimb} onClose={() => setEditClimb(null)} />
+      <ExportSheet open={exportOpen} onClose={() => setExportOpen(false)} data={data} />
     </div>
   );
 }
@@ -79,7 +92,7 @@ function SessionsList({ data, onPickDate }) {
 }
 
 // -------- All climbs (flat, filterable, sortable) --------
-function ClimbsList({ data, onRemove }) {
+function ClimbsList({ data, onEdit }) {
   const [styleFilter, setStyleFilter]   = useState('all'); // all | toprope | boulder
   const [resultFilter, setResultFilter] = useState('all'); // all | flash | complete | fail
   const [sort, setSort]                 = useState('date-desc'); // date-desc | date-asc | grade-desc | grade-asc
@@ -171,25 +184,30 @@ function ClimbsList({ data, onRemove }) {
           </div>
           <ul className="divide-y divide-zinc-800/70">
             {filtered.map((c) => (
-              <li key={c.id} className="px-3 py-2 flex items-center gap-2 text-xs">
-                <span className="text-[10px] text-zinc-500 w-16 tabular-nums flex-shrink-0">{c.date}</span>
-                <span className={`text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded flex-shrink-0 ${
-                  c.style === 'toprope' ? 'bg-sky-500/15 text-sky-300' : 'bg-fuchsia-500/15 text-fuchsia-300'
-                }`}>
-                  {c.style === 'toprope' ? 'TR' : 'V'}
-                </span>
-                <span className="text-orange-300 font-bold tabular-nums w-14 flex-shrink-0">{c.grade}</span>
-                <div className="flex-1 min-w-0">
-                  {c.routeName ? (
-                    <div className="text-zinc-100 truncate">{c.routeName}</div>
-                  ) : (
-                    <div className="text-zinc-500 italic">(unnamed)</div>
-                  )}
-                  {c.notes && <div className="text-zinc-500 truncate text-[10px]">{c.notes}</div>}
-                </div>
-                <ResultChip result={c.result} />
-                {c.difficulty && <span className="text-[10px] text-zinc-500 tabular-nums flex-shrink-0">{c.difficulty}/10</span>}
-                <button onClick={() => onRemove(c.style, c.id)} className="text-zinc-600 hover:text-rose-400 px-1 flex-shrink-0">×</button>
+              <li key={c.id}>
+                <button
+                  onClick={() => onEdit(c)}
+                  className="w-full text-left px-3 py-2 flex items-center gap-2 text-xs hover:bg-zinc-800/50 active:bg-zinc-800/80"
+                >
+                  <span className="text-[10px] text-zinc-500 w-16 tabular-nums flex-shrink-0">{c.date}</span>
+                  <span className={`text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded flex-shrink-0 ${
+                    c.style === 'toprope' ? 'bg-sky-500/15 text-sky-300' : 'bg-fuchsia-500/15 text-fuchsia-300'
+                  }`}>
+                    {c.style === 'toprope' ? 'TR' : 'V'}
+                  </span>
+                  <span className="text-orange-300 font-bold tabular-nums w-14 flex-shrink-0">{c.grade}</span>
+                  <div className="flex-1 min-w-0">
+                    {c.routeName ? (
+                      <div className="text-zinc-100 truncate">{c.routeName}</div>
+                    ) : (
+                      <div className="text-zinc-500 italic">(tap to name)</div>
+                    )}
+                    {c.notes && <div className="text-zinc-500 truncate text-[10px]">{c.notes}</div>}
+                  </div>
+                  <ResultChip result={c.result} />
+                  {c.difficulty && <span className="text-[10px] text-zinc-500 tabular-nums flex-shrink-0">{c.difficulty}/10</span>}
+                  <span className="text-zinc-600 text-sm flex-shrink-0">›</span>
+                </button>
               </li>
             ))}
           </ul>

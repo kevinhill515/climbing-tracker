@@ -79,8 +79,10 @@ export default function WeekView() {
       <WeeklyScorecard data={data} wid={wid} style="toprope" />
       <WeeklyScorecard data={data} wid={wid} style="boulder" />
 
-      {/* Session cards — the 3 target protocol sessions per week */}
-      <div className="space-y-2.5">
+      {/* Session cards — tightened so all 4 fit on screen without scrolling.
+          Smaller padding, single-line focus text (truncate on overflow),
+          smaller icon + check circle. */}
+      <div className="space-y-2">
         {SESSION_TYPES.map((s) => {
           const done = !!myWk[s];
           const meta = SESSION_META[s];
@@ -88,21 +90,21 @@ export default function WeekView() {
             <button
               key={s}
               onClick={() => setOpenSession(s)}
-              className={`w-full text-left bg-zinc-900 border rounded-2xl p-4 flex items-start gap-3 transition active:scale-[0.99] ${
+              className={`w-full text-left bg-zinc-900 border rounded-xl px-3 py-2.5 flex items-center gap-3 transition active:scale-[0.99] ${
                 done ? 'border-orange-500/40' : 'border-zinc-800 hover:border-zinc-700'
               }`}
             >
-              <div className={`w-11 h-11 rounded-xl border flex items-center justify-center text-lg flex-shrink-0 ${COLOR_MAP[meta.color]}`}>
+              <div className={`w-9 h-9 rounded-lg border flex items-center justify-center text-base flex-shrink-0 ${COLOR_MAP[meta.color]}`}>
                 {meta.icon}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="font-semibold text-zinc-100">{meta.name}</div>
-                  <div className="text-[10px] text-zinc-500 flex-shrink-0">{meta.time}</div>
+                <div className="flex items-baseline justify-between gap-2">
+                  <div className="font-semibold text-zinc-100 text-sm">{meta.name}</div>
+                  <div className="text-[10px] text-zinc-500 flex-shrink-0 tabular-nums">{meta.time}</div>
                 </div>
-                <div className="text-xs text-zinc-400 mt-0.5 leading-snug">{meta.focus}</div>
+                <div className="text-[11px] text-zinc-400 leading-tight truncate">{meta.focus}</div>
               </div>
-              <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition flex-shrink-0 mt-0.5 ${
+              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition flex-shrink-0 text-xs ${
                 done ? 'bg-orange-500 border-orange-500 text-zinc-950' : 'border-zinc-700 text-transparent'
               }`}>
                 ✓

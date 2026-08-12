@@ -363,6 +363,21 @@ export function StoreProvider({ children }) {
     }));
   }, [patch]);
 
+  // Edit fields on an existing attempt (route name, notes, difficulty…).
+  // Preserves id + timestamps by design — only the passed fields overwrite.
+  const updateGradeAttempt = useCallback((style, id, updates) => {
+    patch((d) => ({
+      ...d,
+      grades: {
+        ...d.grades,
+        [style]: {
+          ...d.grades[style],
+          attempts: d.grades[style].attempts.map((a) => a.id === id ? { ...a, ...updates } : a),
+        },
+      },
+    }));
+  }, [patch]);
+
   // Phase advancement — also stamps a completion date onto the phase we
   // just finished, so the Milestones tab can show a timeline.
   const advancePhase = useCallback(() => {
@@ -490,6 +505,7 @@ export function StoreProvider({ children }) {
       setGradeLevel,
       logGradeAttempt,
       removeGradeAttempt,
+      updateGradeAttempt,
       advancePhase,
       setPhaseOverride,
       setStartDate,
@@ -505,7 +521,7 @@ export function StoreProvider({ children }) {
     state.hydrated, state.data,
     toggleSession, addLog, removeLog, addSession, removeSession,
     addHealthCheck, removeHealthCheck, addTechniqueNote,
-    setGradeLevel, logGradeAttempt, removeGradeAttempt,
+    setGradeLevel, logGradeAttempt, removeGradeAttempt, updateGradeAttempt,
     advancePhase, setPhaseOverride, setStartDate, setFlashGrade,
     toggleLeadSubitem, toggleOutdoorFlag, setOutdoorDate, toggleDrillMastery,
     pull, forceRestoreFromCloud,
