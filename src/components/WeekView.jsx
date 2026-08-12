@@ -55,24 +55,28 @@ export default function WeekView() {
 
       <PhaseJourney currentPhase={phase.id} />
 
-      {/* Weekly progress ring */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex items-center gap-4 mb-4">
-        <ProgressRing
-          value={doneCount / SESSION_TYPES.length}
-          label={`${doneCount}/${SESSION_TYPES.length}`}
-          sub="this week"
-          size={92}
-        />
-        <div className="flex-1 min-w-0">
-          <div className="text-xs text-zinc-500">This week</div>
-          <div className="text-sm text-zinc-300 mt-0.5">
-            {doneCount === SESSION_TYPES.length
-              ? 'All 3 sessions done 🔥'
-              : `${SESSION_TYPES.length - doneCount} session${SESSION_TYPES.length - doneCount === 1 ? '' : 's'} left`}
-          </div>
-          <div className="text-[11px] text-zinc-500 mt-2 leading-relaxed">
-            Fingers need 48h between hard sessions — plan a rest day between each.
-          </div>
+      {/* This week — same shape as PhaseJourney above (thin bar-row card).
+          Four segments, one per session; orange when done, dim otherwise.
+          Session initial below each bar for identification. */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3 mb-3">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-[11px] uppercase tracking-wide text-zinc-500">This week</div>
+          <div className="text-[11px] text-zinc-400">{doneCount} of {SESSION_TYPES.length}</div>
+        </div>
+        <div className="flex gap-1">
+          {SESSION_TYPES.map((s) => {
+            const done = !!myWk[s];
+            const meta = SESSION_META[s];
+            const initial = meta.name.charAt(0);
+            return (
+              <div key={s} className="flex-1 min-w-0">
+                <div className={`h-1.5 rounded overflow-hidden ${done ? 'bg-orange-400' : 'bg-zinc-800'}`} />
+                <div className={`text-[9px] mt-1 text-center truncate ${done ? 'text-orange-300' : 'text-zinc-600'}`}>
+                  {initial}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -202,12 +206,11 @@ function WeeklyScorecard({ data, wid, style }) {
       else stretch++;
       if (a.drillFocus) drills.add(a.drillFocus);
     }
-    // Also count drills logged on the OTHER style so the TR card shows
-    // the true weekly drill count (drills happen on both).
-    if (isTR) {
-      for (const a of (data.grades?.boulder?.attempts || [])) {
-        if (a.weekId === wid && a.drillFocus) drills.add(a.drillFocus);
-      }
+    // Drills apply to both styles — aggregate across TR AND boulder for
+    // BOTH cards so the count is consistent whichever card you look at.
+    const otherStyle = isTR ? 'boulder' : 'toprope';
+    for (const a of (data.grades?.[otherStyle]?.attempts || [])) {
+      if (a.weekId === wid && a.drillFocus) drills.add(a.drillFocus);
     }
     const total = focus + moderate + stretch;
     const focusPct    = total ? Math.round((focus    / total) * 100) : 0;
@@ -260,15 +263,19 @@ function WeeklyScorecard({ data, wid, style }) {
           accent="rose"
         />
       </div>
-      {isTR && (
-        <div className="px-3 pb-3">
-          <MiniStat label="Drills practiced (both styles)" value={stats.drills > 0 ? `${stats.drills} of 5` : '0'} />
-        </div>
-      )}
+      <div className="px-3 pb-3">
+        <MiniStat label="Drills practiced" value={stats.drills > 0 ? `${stats.drills} of 5` : '0'} />
+      </div>
       {stats.total > 0 && (
-        <div className="px-4 pb-3 text-[10px] text-zinc-500 leading-tight">
-          Bechtel/Hörst mix: 60-70% moderate · 20-30% flash · 5-10% stretch.{' '}
-          {stats.focusPct >= 20 && stats.focusPct <= 35 ? 'On target for focus reps ✓' : stats.focusPct < 20 ? '↑ more focus reps at flash' : '↓ ease the flash volume'}
+        <div className="px-4 pb-3 text-[10px] leading-tight">
+          <span className={
+            stats.focusPct >= 20 && stats.focusPct <= 35 ? 'text-emerald-400' :
+            stats.focusPct < 20 ? 'text-amber-400' : 'text-rose-400'
+          }>
+            {stats.focusPct >= 20 && stats.focusPct <= 35 ? 'On target for focus reps ✓'
+              : stats.focusPct < 20 ? '↑ more focus reps at flash'
+              : '↓ ease the flash volume'}
+          </span>
         </div>
       )}
     </div>

@@ -133,6 +133,21 @@ function ensureShape(data) {
     boulder: { ...DEFAULT_DATA().grades.boulder, ...(data?.grades?.boulder || {}) },
     toprope: { ...DEFAULT_DATA().grades.toprope, ...(data?.grades?.toprope || {}) },
   };
+  // Backfill loggedAt on existing attempts that predate the field.
+  // Synthetic value: midnight-of-date + index-in-style-array so within-
+  // style order is preserved, and cross-style tie-break just falls to
+  // wherever we merge them. Pre-fix data can't recover true logging
+  // order, but new logs capture Date.now() at insert time.
+  const backfill = (style) => {
+    const arr = d.grades[style].attempts || [];
+    d.grades[style].attempts = arr.map((a, i) => {
+      if (a.loggedAt) return a;
+      const base = a.date ? new Date(`${a.date}T12:00:00`).getTime() : 0;
+      return { ...a, loggedAt: base + i };
+    });
+  };
+  backfill('toprope');
+  backfill('boulder');
   d.milestones = { ...DEFAULT_DATA().milestones, ...(data?.milestones || {}) };
   // Seed flashHistory when missing so past weeks have a reference grade —
   // otherwise flashAt() returns null for any week before the first bump.
@@ -337,7 +352,10 @@ export function StoreProvider({ children }) {
     patch((d) => {
       const date = entry.date || TODAY();
       const wid = weekId(parseDate(date));
-      const attempt = { id: uid(), date, weekId: wid, ...entry };
+      // loggedAt captures wall-clock at time of logging, used as the
+      // within-day sort tiebreak so climbs display in the order they
+      // were actually logged (across styles).
+      const attempt = { id: uid(), date, weekId: wid, loggedAt: Date.now(), ...entry };
       const styleData = d.grades[style];
       let firstFlash = styleData.firstFlash;
       // Record first flash for a grade the very first time it happens

@@ -114,8 +114,22 @@ function ClimbsList({ data, onEdit }) {
     if (styleFilter !== 'all') arr = arr.filter((a) => a.style === styleFilter);
     if (resultFilter !== 'all') arr = arr.filter((a) => a.result === resultFilter);
     arr = [...arr];
-    if (sort === 'date-desc')  arr.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-    if (sort === 'date-asc')   arr.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    // WITHIN A DAY, always preserve logging order (loggedAt ascending) —
+    // "in the order I logged it in the session". Between days, the sort
+    // direction applies.
+    const cmpLogged = (a, b) => (a.loggedAt || 0) - (b.loggedAt || 0);
+    if (sort === 'date-desc') {
+      arr.sort((a, b) => {
+        const d = (b.date || '').localeCompare(a.date || '');
+        return d !== 0 ? d : cmpLogged(a, b);
+      });
+    }
+    if (sort === 'date-asc') {
+      arr.sort((a, b) => {
+        const d = (a.date || '').localeCompare(b.date || '');
+        return d !== 0 ? d : cmpLogged(a, b);
+      });
+    }
     if (sort === 'grade-desc') arr.sort((a, b) => ordinalOf(b.style, b.grade) - ordinalOf(a.style, a.grade));
     if (sort === 'grade-asc')  arr.sort((a, b) => ordinalOf(a.style, a.grade) - ordinalOf(b.style, b.grade));
     return arr;
