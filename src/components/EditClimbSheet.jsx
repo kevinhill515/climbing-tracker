@@ -1,16 +1,38 @@
 import Sheet from './Sheet.jsx';
 import { useStore } from '../store.jsx';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 // Edit a logged climb after the fact — route name, notes, difficulty,
 // and result. Grade + date are frozen (change those by deleting and
 // re-logging). Delete lives at the bottom.
 export default function EditClimbSheet({ open, onClose, climb }) {
-  const { actions } = useStore();
+  const { data, actions } = useStore();
   const [routeName, setRouteName]   = useState('');
   const [notes, setNotes]           = useState('');
   const [difficulty, setDifficulty] = useState(5);
   const [result, setResult]         = useState('flash');
+
+  // Route suggestions from prior attempts at THIS climb's style + grade.
+  // Excludes the current climb's own contribution so the count reflects
+  // "other times you climbed this route".
+  const routeSuggestions = useMemo(() => {
+    if (!climb) return [];
+    const attempts = data?.grades?.[climb.style]?.attempts || [];
+    const filtered = attempts.filter((a) => a.grade === climb.grade && a.id !== climb.id);
+    const byKey = new Map();
+    for (const a of filtered) {
+      const name = (a.routeName || '').trim();
+      if (!name) continue;
+      const key = name.toLowerCase();
+      const existing = byKey.get(key);
+      if (!existing) byKey.set(key, { name, count: 1, lastAt: a.loggedAt || 0 });
+      else {
+        existing.count++;
+        if ((a.loggedAt || 0) > existing.lastAt) existing.lastAt = a.loggedAt || 0;
+      }
+    }
+    return Array.from(byKey.values()).sort((a, b) => b.lastAt - a.lastAt).slice(0, 8);
+  }, [data?.grades, climb]);
 
   useEffect(() => {
     if (open && climb) {
@@ -24,8 +46,13 @@ export default function EditClimbSheet({ open, onClose, climb }) {
   if (!open || !climb) return null;
 
   const save = () => {
+    // Same canonical-name logic as ClimbLogSheet so casing merges.
+    const typed = routeName.trim();
+    const canonical = typed
+      ? (routeSuggestions.find((r) => r.name.toLowerCase() === typed.toLowerCase())?.name || typed)
+      : undefined;
     actions.updateGradeAttempt(climb.style, climb.id, {
-      routeName: routeName.trim() || undefined,
+      routeName: canonical,
       notes: notes.trim(),
       difficulty,
       result,
@@ -64,6 +91,28 @@ export default function EditClimbSheet({ open, onClose, climb }) {
             placeholder="(unnamed)"
             className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500"
           />
+          {routeSuggestions.length > 0 && (
+            <div className="mt-1.5 flex flex-wrap gap-1">
+              {routeSuggestions.map((r) => {
+                const active = routeName.trim().toLowerCase() === r.name.toLowerCase();
+                return (
+                  <button
+                    key={r.name}
+                    onClick={() => setRouteName(r.name)}
+                    className={`px-2 py-1 rounded text-[11px] border transition ${
+                      active
+                        ? 'bg-orange-500 text-zinc-950 border-orange-500'
+                        : 'bg-zinc-800/60 border-zinc-700 text-zinc-300 hover:border-zinc-500'
+                    }`}
+                    title={`${r.count} other attempt${r.count === 1 ? '' : 's'} at this grade`}
+                  >
+                    {r.name}
+                    <span className={active ? 'text-zinc-800/80' : 'text-zinc-500'}> · {r.count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <div>

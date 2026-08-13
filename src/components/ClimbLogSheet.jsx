@@ -30,6 +30,35 @@ export default function ClimbLogSheet({
   const [drillFocus, setDrillFocus] = useState(null);    // key of selected drill (if applicable)
   const [editClimb, setEditClimb] = useState(null);      // { id, style, … } — tap a logged row
 
+  // Route-name suggestions: unique names previously used on this style,
+  // optionally narrowed to matching grade when one is picked. Two climbs
+  // that share (style, grade, name) are considered the same route — the
+  // chip UX ensures the user picks the canonical spelling so the linkage
+  // holds without needing explicit route IDs.
+  const routeSuggestions = useMemo(() => {
+    const styleAttempts = data?.grades?.[getExercise(exerciseId)?.style || 'toprope']?.attempts || [];
+    const filtered = grade
+      ? styleAttempts.filter((a) => a.grade === grade)
+      : styleAttempts;
+    // Group case-insensitively so "Blue slab" and "blue slab" don't
+    // appear as separate chips. Keep the first-seen casing as canonical.
+    const byKey = new Map();
+    for (const a of filtered) {
+      const name = (a.routeName || '').trim();
+      if (!name) continue;
+      const key = name.toLowerCase();
+      const existing = byKey.get(key);
+      if (!existing) byKey.set(key, { name, count: 1, lastAt: a.loggedAt || 0 });
+      else {
+        existing.count++;
+        if ((a.loggedAt || 0) > existing.lastAt) existing.lastAt = a.loggedAt || 0;
+      }
+    }
+    return Array.from(byKey.values())
+      .sort((a, b) => b.lastAt - a.lastAt)
+      .slice(0, 8);
+  }, [data?.grades, exerciseId, grade]);
+
   const todayStr = today();
 
   const climbsThisSession = useMemo(() => {
@@ -63,9 +92,16 @@ export default function ClimbLogSheet({
 
   const addClimb = () => {
     if (!grade) return;
+    // Normalize route name against existing entries: if the typed name
+    // matches an existing one case-insensitively, save with the existing
+    // casing so 'Blue slab' and 'blue slab' collapse to one route.
+    const typed = routeName.trim();
+    const canonical = typed
+      ? (routeSuggestions.find((r) => r.name.toLowerCase() === typed.toLowerCase())?.name || typed)
+      : undefined;
     actions.logGradeAttempt(style, {
       grade,
-      routeName: routeName.trim() || undefined,
+      routeName: canonical,
       sent: result !== 'fail',
       flash: result === 'flash',
       result,
@@ -168,13 +204,37 @@ export default function ClimbLogSheet({
         <div className="pt-3 border-t border-zinc-800 space-y-3">
           <div className="text-xs uppercase tracking-wide text-zinc-500">Add a climb</div>
 
-          <input
-            type="text"
-            value={routeName}
-            onChange={(e) => setRouteName(e.target.value)}
-            placeholder="Route / problem name (optional)"
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500"
-          />
+          <div>
+            <input
+              type="text"
+              value={routeName}
+              onChange={(e) => setRouteName(e.target.value)}
+              placeholder="Route / problem name (optional)"
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500"
+            />
+            {routeSuggestions.length > 0 && (
+              <div className="mt-1.5 flex flex-wrap gap-1">
+                {routeSuggestions.map((r) => {
+                  const active = routeName.trim().toLowerCase() === r.name.toLowerCase();
+                  return (
+                    <button
+                      key={r.name}
+                      onClick={() => setRouteName(r.name)}
+                      className={`px-2 py-1 rounded text-[11px] border transition ${
+                        active
+                          ? 'bg-orange-500 text-zinc-950 border-orange-500'
+                          : 'bg-zinc-800/60 border-zinc-700 text-zinc-300 hover:border-zinc-500'
+                      }`}
+                      title={`${r.count} previous attempt${r.count === 1 ? '' : 's'}`}
+                    >
+                      {r.name}
+                      <span className={active ? 'text-zinc-800/80' : 'text-zinc-500'}> · {r.count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           <div>
             <div className="text-[10px] uppercase tracking-wide text-zinc-500 mb-1">Scale</div>
