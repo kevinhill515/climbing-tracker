@@ -6,7 +6,7 @@ import StrengthCheckSheet from './StrengthCheckSheet.jsx';
 import { getExercise } from '../data/exercises.js';
 import { SESSION_META, getSessionSteps } from '../data/program.js';
 import { useStore } from '../store.jsx';
-import { weekId, today } from '../utils/dates.js';
+import { weekId, today, parseDate } from '../utils/dates.js';
 import { useMemo, useState } from 'react';
 
 const TODAY = today;
@@ -25,30 +25,34 @@ export default function SessionSheet({ open, onClose, sessionType, phase }) {
   const [prepOpen, setPrepOpen] = useState(null);           // exerciseId — prep checklist
   const [climbOpen, setClimbOpen] = useState(null);         // { id, prescription } — climb attempt
   const [strengthOpen, setStrengthOpen] = useState(null);   // exerciseId — off-wall check-only
+  // Session log date — defaults to today, user can backdate for a session
+  // they climbed but didn't log at the time. All climbs added under this
+  // session use this date (+ its weekId); the mark-complete toggle
+  // targets the same week.
+  const [logDate, setLogDate] = useState(TODAY());
 
-  // Combined "logged today" counts — pulls both exercise logs AND grade
-  // attempts (which the ClimbLogSheet writes to grades.[style].attempts).
-  const todayStr = TODAY();
-  const todayCounts = useMemo(() => {
+  // Combined counts for THIS session on the picked log date. Match by
+  // date + sessionType so switching the date shows what's already logged
+  // for that session on that day.
+  const dateCounts = useMemo(() => {
     const m = {};
-    // Off-wall exercise logs
     for (const l of data?.logs || []) {
-      if (l.date !== todayStr) continue;
+      if (l.date !== logDate) continue;
       if (l.sessionType && l.sessionType !== sessionType) continue;
       m[l.exerciseId] = (m[l.exerciseId] || 0) + 1;
     }
-    // On-wall grade attempts (from ClimbLogSheet saves)
     for (const style of ['toprope', 'boulder']) {
       const attempts = data?.grades?.[style]?.attempts || [];
       for (const a of attempts) {
-        if (a.date !== todayStr) continue;
+        if (a.date !== logDate) continue;
         if (a.sessionType && a.sessionType !== sessionType) continue;
         if (!a.exerciseId) continue;
         m[a.exerciseId] = (m[a.exerciseId] || 0) + 1;
       }
     }
     return m;
-  }, [data?.logs, data?.grades, todayStr, sessionType]);
+  }, [data?.logs, data?.grades, logDate, sessionType]);
+  const todayCounts = dateCounts; // legacy variable name used further down
 
   if (!sessionType || !phase) return null;
   const session = phase.sessions[sessionType];
@@ -58,9 +62,10 @@ export default function SessionSheet({ open, onClose, sessionType, phase }) {
   // pull grades from state.flashTR; static sessions keep their .steps.
   const steps = getSessionSteps(phase, sessionType, data);
 
-  const wid = weekId();
+  const wid = weekId(parseDate(logDate));
   const isDone = !!data?.weeks?.[wid]?.[sessionType];
   const meta = SESSION_META[sessionType];
+  const isBackdated = logDate !== TODAY();
 
   const openStep = (ex, dose) => {
     if (ex.checklist) {
@@ -90,6 +95,29 @@ export default function SessionSheet({ open, onClose, sessionType, phase }) {
             <div className="text-xs uppercase tracking-wide text-zinc-500">Focus</div>
             <p className="text-sm text-zinc-300 mt-1">{meta.focus}</p>
             <div className="text-[11px] text-zinc-500 mt-0.5">{meta.time}</div>
+          </div>
+
+          {/* Log-for date picker — for backdating a session you climbed
+              but didn't log at the time. All climbs added under this
+              session get this date + its weekId; mark-complete targets
+              the same week. Non-today dates show an amber warning tag. */}
+          <div className={`rounded-xl border px-3 py-2 flex items-center gap-2 text-xs ${
+            isBackdated ? 'bg-amber-500/10 border-amber-500/40 text-amber-300' : 'bg-zinc-800/60 border-zinc-700 text-zinc-300'
+          }`}>
+            <span className="text-[10px] uppercase tracking-wide text-zinc-500 flex-shrink-0">Log for</span>
+            <input
+              type="date"
+              value={logDate}
+              max={TODAY()}
+              onChange={(e) => e.target.value && setLogDate(e.target.value)}
+              className="bg-transparent border-0 text-sm text-zinc-100 flex-1 min-w-0"
+            />
+            {isBackdated && (
+              <button
+                onClick={() => setLogDate(TODAY())}
+                className="text-[10px] underline text-amber-300 hover:text-amber-200 flex-shrink-0"
+              >reset</button>
+            )}
           </div>
 
           {/* Steps grouped by top-level kind: Prep / Top rope / Boulder / Off */}
@@ -272,6 +300,7 @@ export default function SessionSheet({ open, onClose, sessionType, phase }) {
         exerciseId={climbOpen?.id}
         prescription={climbOpen?.prescription}
         sessionType={sessionType}
+        logDate={logDate}
         onClose={() => setClimbOpen(null)}
       />
 

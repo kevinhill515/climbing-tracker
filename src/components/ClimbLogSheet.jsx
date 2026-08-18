@@ -18,7 +18,7 @@ import { today } from '../utils/dates.js';
 //   6. "Done" closes
 //   7. How-to + why AT THE BOTTOM (reference material, not the main event)
 export default function ClimbLogSheet({
-  open, onClose, exerciseId, sessionType,
+  open, onClose, exerciseId, sessionType, logDate,
 }) {
   const { data, actions } = useStore();
 
@@ -29,6 +29,10 @@ export default function ClimbLogSheet({
   const [notes, setNotes]           = useState('');
   const [drillFocus, setDrillFocus] = useState(null);    // key of selected drill (if applicable)
   const [editClimb, setEditClimb] = useState(null);      // { id, style, … } — tap a logged row
+
+  // Session date comes from the parent SessionSheet. Falls back to today
+  // for legacy callers that don't pass one.
+  const effectiveDate = logDate || today();
 
   // Route-name suggestions: unique names previously used on this style,
   // optionally narrowed to matching grade when one is picked. Two climbs
@@ -59,22 +63,20 @@ export default function ClimbLogSheet({
       .slice(0, 8);
   }, [data?.grades, exerciseId, grade]);
 
-  const todayStr = today();
-
   const climbsThisSession = useMemo(() => {
     if (!exerciseId || !sessionType) return [];
     const climbs = [];
     for (const s of ['toprope', 'boulder']) {
       const attempts = data?.grades?.[s]?.attempts || [];
       for (const a of attempts) {
-        if (a.date !== todayStr) continue;
+        if (a.date !== effectiveDate) continue;
         if (a.sessionType !== sessionType) continue;
         if (a.exerciseId !== exerciseId) continue;
         climbs.push({ ...a, style: s });
       }
     }
     return climbs;
-  }, [data?.grades, todayStr, sessionType, exerciseId]);
+  }, [data?.grades, effectiveDate, sessionType, exerciseId]);
 
   useEffect(() => {
     if (open) {
@@ -108,7 +110,7 @@ export default function ClimbLogSheet({
       difficulty,
       attempts: 1,
       notes: notes.trim(),
-      date: todayStr,
+      date: effectiveDate,
       sessionType,
       exerciseId,
       ...(drillFocus ? { drillFocus } : {}),

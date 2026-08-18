@@ -1,6 +1,7 @@
 import Sheet from './Sheet.jsx';
 import { useStore } from '../store.jsx';
 import { useEffect, useMemo, useState } from 'react';
+import { weekId, parseDate, today } from '../utils/dates.js';
 
 // Edit a logged climb after the fact — route name, notes, difficulty,
 // and result. Grade + date are frozen (change those by deleting and
@@ -11,6 +12,7 @@ export default function EditClimbSheet({ open, onClose, climb }) {
   const [notes, setNotes]           = useState('');
   const [difficulty, setDifficulty] = useState(5);
   const [result, setResult]         = useState('flash');
+  const [date, setDate]             = useState('');
 
   // Route suggestions from prior attempts at THIS climb's style + grade.
   // Excludes the current climb's own contribution so the count reflects
@@ -40,6 +42,7 @@ export default function EditClimbSheet({ open, onClose, climb }) {
       setNotes(climb.notes || '');
       setDifficulty(climb.difficulty || 5);
       setResult(climb.result || (climb.flash ? 'flash' : climb.sent ? 'complete' : 'fail'));
+      setDate(climb.date || today());
     }
   }, [open, climb]);
 
@@ -51,14 +54,21 @@ export default function EditClimbSheet({ open, onClose, climb }) {
     const canonical = typed
       ? (routeSuggestions.find((r) => r.name.toLowerCase() === typed.toLowerCase())?.name || typed)
       : undefined;
-    actions.updateGradeAttempt(climb.style, climb.id, {
+    // Changing the date also updates weekId so weekly bucketing follows.
+    const dateChanged = date && date !== climb.date;
+    const updates = {
       routeName: canonical,
       notes: notes.trim(),
       difficulty,
       result,
       sent: result !== 'fail',
       flash: result === 'flash',
-    });
+    };
+    if (dateChanged) {
+      updates.date = date;
+      updates.weekId = weekId(parseDate(date));
+    }
+    actions.updateGradeAttempt(climb.style, climb.id, updates);
     onClose();
   };
 
@@ -71,15 +81,32 @@ export default function EditClimbSheet({ open, onClose, climb }) {
     <Sheet open={open} onClose={onClose} title="Edit climb" fullHeight>
       <div className="px-5 py-4 space-y-4">
 
-        {/* Read-only header row: date + style + grade — these are frozen */}
+        {/* Style + grade are frozen (change those by deleting + re-logging).
+            Date is editable — for backdating climbs that got logged on the
+            wrong day. */}
         <div className="flex items-center gap-2 text-xs">
-          <span className="text-zinc-500 tabular-nums">{climb.date}</span>
           <span className={`text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded ${
             climb.style === 'toprope' ? 'bg-sky-500/20 text-sky-300' : 'bg-fuchsia-500/20 text-fuchsia-300'
           }`}>
             {climb.style === 'toprope' ? 'Top rope' : 'Boulder'}
           </span>
           <span className="text-orange-300 font-bold tabular-nums">{climb.grade}</span>
+        </div>
+
+        <div>
+          <label className="text-[10px] uppercase tracking-wide text-zinc-500 mb-1 block">Date</label>
+          <input
+            type="date"
+            value={date}
+            max={today()}
+            onChange={(e) => e.target.value && setDate(e.target.value)}
+            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100"
+          />
+          {date && date !== climb.date && (
+            <div className="text-[10px] text-amber-400 mt-1">
+              Was {climb.date} — saving will move this climb (and its week bucket).
+            </div>
+          )}
         </div>
 
         <div>
