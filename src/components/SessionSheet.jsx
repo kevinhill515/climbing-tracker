@@ -85,8 +85,17 @@ export default function SessionSheet({ open, onClose, sessionType, phase }) {
             <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl px-3 py-2 text-sm text-orange-300 flex items-start gap-2">
               <span className="text-orange-400 leading-none">✓</span>
               <span>
-                <span className="font-medium">Session complete.</span>{' '}
-                Log more anytime — it stays marked done.
+                {isBackdated ? (
+                  <>
+                    <span className="font-medium">This week's {meta?.name} is already checked off.</span>{' '}
+                    You can still log climbs — tap any exercise below and they'll be dated {logDate}.
+                  </>
+                ) : (
+                  <>
+                    <span className="font-medium">Session complete.</span>{' '}
+                    Log more anytime — it stays marked done.
+                  </>
+                )}
               </span>
             </div>
           )}
@@ -263,18 +272,25 @@ export default function SessionSheet({ open, onClose, sessionType, phase }) {
             );
           })()}
 
-          {/* Bottom action */}
+          {/* Bottom action.
+              - Not done  → orange "Mark this week's session complete"
+              - Done & today: Done (close) + Undo (unchecks the week)
+              - Done & backdated: just Done. Hide undo — the week checkbox
+                may have been set on a different date, and undoing it while
+                the user is trying to log a specific past date is confusing. */}
           {!isDone ? (
             <button
               onClick={() => { actions.toggleSession(wid, sessionType); onClose(); }}
               className="w-full font-bold rounded-2xl py-4 text-lg bg-orange-500 hover:bg-orange-400 text-zinc-950 transition"
             >
-              Mark session complete
+              Mark {meta?.name} complete for week of {logDate}
             </button>
           ) : (
             <div className="space-y-2">
               <button onClick={onClose} className="w-full font-bold rounded-2xl py-4 text-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-100 transition">Done</button>
-              <button onClick={() => actions.toggleSession(wid, sessionType)} className="w-full text-xs text-zinc-500 hover:text-rose-400 py-1">Undo complete</button>
+              {!isBackdated && (
+                <button onClick={() => actions.toggleSession(wid, sessionType)} className="w-full text-xs text-zinc-500 hover:text-rose-400 py-1">Undo complete</button>
+              )}
             </div>
           )}
         </div>
