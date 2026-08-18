@@ -404,6 +404,30 @@ export function StoreProvider({ children }) {
     }));
   }, [patch]);
 
+  // Bulk-move an entire session's worth of climbs + exercise logs from
+  // one date to another. Matches by (date === fromDate && sessionType
+  // === sessionType). Rewrites weekId on each moved item so weekly
+  // bucketing follows. Used to fix mis-dated sessions in one action.
+  // Returns nothing — the patch is applied atomically.
+  const bulkMoveSession = useCallback(({ fromDate, sessionType: st, toDate }) => {
+    if (!fromDate || !toDate || !st || fromDate === toDate) return;
+    const newWid = weekId(parseDate(toDate));
+    patch((d) => {
+      const rewire = (a) => (a.date === fromDate && a.sessionType === st)
+        ? { ...a, date: toDate, weekId: newWid }
+        : a;
+      return {
+        ...d,
+        grades: {
+          ...d.grades,
+          toprope: { ...d.grades.toprope, attempts: d.grades.toprope.attempts.map(rewire) },
+          boulder: { ...d.grades.boulder, attempts: d.grades.boulder.attempts.map(rewire) },
+        },
+        logs: (d.logs || []).map(rewire),
+      };
+    });
+  }, [patch]);
+
   // Phase advancement — also stamps a completion date onto the phase we
   // just finished, so the Milestones tab can show a timeline.
   const advancePhase = useCallback(() => {
@@ -532,6 +556,7 @@ export function StoreProvider({ children }) {
       logGradeAttempt,
       removeGradeAttempt,
       updateGradeAttempt,
+      bulkMoveSession,
       advancePhase,
       setPhaseOverride,
       setStartDate,
@@ -547,7 +572,7 @@ export function StoreProvider({ children }) {
     state.hydrated, state.data,
     toggleSession, addLog, removeLog, addSession, removeSession,
     addHealthCheck, removeHealthCheck, addTechniqueNote,
-    setGradeLevel, logGradeAttempt, removeGradeAttempt, updateGradeAttempt,
+    setGradeLevel, logGradeAttempt, removeGradeAttempt, updateGradeAttempt, bulkMoveSession,
     advancePhase, setPhaseOverride, setStartDate, setFlashGrade,
     toggleLeadSubitem, toggleOutdoorFlag, setOutdoorDate, toggleDrillMastery,
     pull, forceRestoreFromCloud,

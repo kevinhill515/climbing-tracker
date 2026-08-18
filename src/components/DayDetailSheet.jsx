@@ -1,8 +1,9 @@
 import Sheet from './Sheet.jsx';
 import { useStore } from '../store.jsx';
 import { getExercise } from '../data/exercises.js';
-import { parseDate, weekId } from '../utils/dates.js';
+import { parseDate, weekId, today } from '../utils/dates.js';
 import { SESSION_TYPES, SESSION_META } from '../data/program.js';
+import { useMemo, useState } from 'react';
 
 // Read-only view of everything logged on a single date. Tapping a
 // heatmap cell opens this sheet.
@@ -23,6 +24,22 @@ export default function DayDetailSheet({ open, date, onClose }) {
   const byType = groupBySessionType(dayLogs);
   const totalCount = dayLogs.length + dayAttempts.length + dayHealth.length;
 
+  // Per-session-type tallies of everything on this day (climbs + logs)
+  // so the user can bulk-move a mis-dated session in one action.
+  const sessionsOnDay = useMemo(() => {
+    const map = {};
+    const bump = (st, kind) => {
+      if (!st) return;
+      if (!map[st]) map[st] = { climbs: 0, logs: 0 };
+      map[st][kind]++;
+    };
+    for (const a of dayAttempts) bump(a.sessionType, 'climbs');
+    for (const l of dayLogs)     bump(l.sessionType, 'logs');
+    return Object.entries(map)
+      .filter(([st]) => SESSION_TYPES.includes(st))
+      .map(([st, counts]) => ({ sessionType: st, ...counts }));
+  }, [dayAttempts, dayLogs]);
+
   return (
     <Sheet open={open} onClose={onClose} title={fmtPretty(date)} fullHeight>
       <div className="px-5 py-4 space-y-4">
@@ -35,6 +52,31 @@ export default function DayDetailSheet({ open, date, onClose }) {
             <div className="text-xs text-zinc-500">
               {dayLogs.length} log{dayLogs.length === 1 ? '' : 's'} · {dayAttempts.length} grade attempt{dayAttempts.length === 1 ? '' : 's'} · {dayHealth.length} check-in{dayHealth.length === 1 ? '' : 's'}
             </div>
+
+            {/* Bulk-move: if the day has sessions logged, offer to shift
+                each to a different date (fixes 'logged Thursday's
+                session on Friday' in one action). */}
+            {sessionsOnDay.length > 0 && (
+              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3">
+                <div className="text-[10px] uppercase tracking-wide text-zinc-500 mb-2">
+                  Move a session to another date
+                </div>
+                <ul className="space-y-1.5">
+                  {sessionsOnDay.map((s) => (
+                    <MoveRow
+                      key={s.sessionType}
+                      sessionType={s.sessionType}
+                      climbs={s.climbs}
+                      logs={s.logs}
+                      fromDate={date}
+                      onMove={(toDate) => actions.bulkMoveSession({
+                        fromDate: date, sessionType: s.sessionType, toDate,
+                      })}
+                    />
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Finger health check-ins for this day */}
             {dayHealth.map((h) => (
@@ -89,6 +131,56 @@ export default function DayDetailSheet({ open, date, onClose }) {
         )}
       </div>
     </Sheet>
+  );
+}
+
+// One row in the "Move a session" panel — collapsed until the user
+// clicks "Move →", which reveals an inline date picker + confirm.
+function MoveRow({ sessionType, climbs, logs, fromDate, onMove }) {
+  const [open, setOpen] = useState(false);
+  const [target, setTarget] = useState('');
+  const meta = SESSION_META[sessionType];
+  const totalCount = climbs + logs;
+  const label = `${climbs} climb${climbs === 1 ? '' : 's'}${logs > 0 ? ` · ${logs} log${logs === 1 ? '' : 's'}` : ''}`;
+
+  if (open) {
+    const dateChanged = target && target !== fromDate;
+    return (
+      <li className="bg-zinc-800/50 border border-zinc-700 rounded-lg p-2 space-y-2">
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-zinc-100 font-medium">{meta?.name || sessionType}</span>
+          <span className="text-zinc-500">→</span>
+          <input
+            type="date"
+            value={target}
+            max={today()}
+            onChange={(e) => setTarget(e.target.value)}
+            className="flex-1 bg-zinc-900 border border-zinc-700 rounded-md px-2 py-1 text-xs text-zinc-100"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setOpen(false)}
+            className="flex-1 text-[11px] text-zinc-400 bg-zinc-800 border border-zinc-700 rounded-md py-1.5"
+          >Cancel</button>
+          <button
+            onClick={() => { if (dateChanged) { onMove(target); setOpen(false); } }}
+            disabled={!dateChanged}
+            className="flex-1 text-[11px] font-bold bg-orange-500 text-zinc-950 disabled:bg-zinc-800 disabled:text-zinc-600 rounded-md py-1.5"
+          >Move {totalCount}</button>
+        </div>
+      </li>
+    );
+  }
+  return (
+    <li className="flex items-center gap-2 text-xs">
+      <span className="text-zinc-100 font-medium w-24 flex-shrink-0">{meta?.name || sessionType}</span>
+      <span className="flex-1 text-zinc-500 truncate">{label}</span>
+      <button
+        onClick={() => { setTarget(fromDate); setOpen(true); }}
+        className="text-[11px] text-orange-300 border border-orange-500/40 bg-orange-500/10 rounded-md px-2 py-1 hover:bg-orange-500/20 flex-shrink-0"
+      >Move →</button>
+    </li>
   );
 }
 
